@@ -1,0 +1,19 @@
+[project]
+name = "rent-a-car"
+version = "0.1.0"
+dependencies=[
+    "flask",
+    "flask-accept",
+    "flask-jwt-extended",
+    "flask-login",
+    "flask-migrate",
+    "flask-smorest",
+    "flask-sqlalchemy",
+    "passlib",
+    "pyodbc",
+    "pytest",
+    "python-dotenv",
+    "sqlalchemy",
+]
+[tool.setuptools]
+packages = ["rent_a_car"]

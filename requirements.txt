@@ -1,0 +1,12 @@
+flask
+flask-accept
+flask-jwt-extended
+flask-login
+flask-migrate
+flask-smorest
+flask-sqlalchemy
+passlib
+pyodbc
+pytest
+python-dotenv
+sqlalchemy

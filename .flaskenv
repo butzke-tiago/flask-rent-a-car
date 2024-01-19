@@ -1,0 +1,2 @@
+FLASK_APP=rent_a_car
+FLASK_DEBUG=1
