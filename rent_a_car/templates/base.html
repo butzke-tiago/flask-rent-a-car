@@ -1,63 +1,81 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>{{ title }}</title>
-    <!-- Add any CSS or external libraries here -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.png') }}">
-    <style>
-      /* Horizontal navigation bar styles */
-      nav ul {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background-color: #333;
-      }
 
-      nav li {
-        float: left;
-      }
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+  <!-- Add any CSS or external libraries here -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.png') }}">
+  {% block head %}{% endblock %}
+  <style>
+    /* Horizontal navigation bar styles */
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #333;
+    }
 
-      nav li a {
-        display: block;
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-      }
+    nav li {
+      float: left;
+    }
 
-      nav li a:hover {
-        background-color: #111;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <!-- Add your header content here -->
-      <h1>{{ title }}</h1>
-      <nav>
-        <ul>
-          {% block nav %}
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <!-- Add more navigation links as needed -->
-          {% endblock %}
-        </ul>
-      </nav>
-    </header>
-    <main>
-      <!-- Add dynamic content and Flask-specific code as needed -->
-      {% block content %}Under construction...{% endblock %}
-    </main>
-    <footer>
-      <!-- Add your footer content here -->
-      <p>&copy; 2024 TBS. All rights reserved.</p>
-    </footer>
-    {% block scripts %}
-    <!-- Add any JavaScript or external scripts at the end of the body -->
-    <script src="script.js"></script>
-    {% endblock %}
-  </body>
+    nav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    nav li a:hover {
+      background-color: #111;
+    }
+
+    .error {
+      padding: 20px;
+      background-color: #f44336;
+      color: white;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <!-- Add your header content here -->
+    <h1>{{ title }}</h1>
+    <nav>
+      <ul>
+        {% block nav %}
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <!-- Add more navigation links as needed -->
+        {% endblock %}
+      </ul>
+    </nav>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </header>
+  <main>
+    <!-- Add dynamic content and Flask-specific code as needed -->
+    {% block content %}Under construction...{% endblock %}
+  </main>
+  <footer>
+    <!-- Add your footer content here -->
+    <p>&copy; 2024 TBS. All rights reserved.</p>
+  </footer>
+  {% block scripts %}
+  <!-- Add any JavaScript or external scripts at the end of the body -->
+  <script src="script.js"></script>
+  {% endblock %}
+</body>
+
 </html>

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+{% endblock %}
+
+{% block nav %}
+{{ super() }}
+{% if not request.path == url_for('user.Login') %}
+<li><a href="{{ url_for('user.Login') }}">Login</a></li>
+{% endif %}
+{% if not request.path == url_for('user.Client') %}
+<li><a href="{{ url_for('user.Client') }}">Register</a></li>
+{% endif %}
+{% if not request.path == url_for('user.Franchisee') %}
+<li><a href="{{ url_for('user.Franchisee') }}">Work with us</a></li>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<table id="register" class="table">
+    <td>
+        <form id="register" method="post">
+            <p>
+                <label for="email">E-mail:</label><br>
+                <input type="email" id="email" name="email" required value="{{ email }}">
+            </p>
+            <p>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" minlength="4" required value="{{ password }}">
+                <i class="bi bi-eye-slash" id="togglePassword"></i>
+            </p>
+            <p>
+                {% if submit == 'Login' %}
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+                {% else %}
+                <label for="name">Name:</label><br>
+                <input type="text" id="name" name="name" minlength="2" maxlength="60" required value="{{ name }}">
+                {% endif %}
+            </p>
+            <input type="submit" value="{{ submit }}">
+        </form>
+    </td>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const togglePassword = document.querySelector("#togglePassword");
+    const password = document.querySelector("#password");
+
+    togglePassword.addEventListener("click", function () {
+        // toggle the type attribute
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+
+        // toggle the icon
+        this.classList.toggle("bi-eye");
+    });
+</script>
+{% endblock %}

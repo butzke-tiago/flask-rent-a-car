@@ -1,2 +1,8 @@
 {% extends "base.html" %}
 
+{% block nav %}
+{{ super() }}
+<li><a href="{{ url_for('user.Login') }}">Login</a></li>
+<li><a href="{{ url_for('user.Client') }}">Register</a></li>
+<li><a href="{{ url_for('user.Franchisee') }}">Work with us</a></li>
+{% endblock %}
