@@ -23,7 +23,7 @@
         <form id="register" method="post">
             <p>
                 <label for="email">E-mail:</label><br>
-                <input type="email" id="email" name="email" required value="{{ email }}">
+                <input type="email" id="email" name="email" required value="{{ email }}" pattern=".+@.+\..{2,}">
             </p>
             <p>
                 <label for="password">Password:</label><br>

@@ -7,3 +7,9 @@ class UserSchema(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True, load_only=True)
     name = fields.String(required=True, validate=Length(2, 60))
+
+
+class UserLoginSchema(Schema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True, load_only=True)
+    remember = fields.Bool(load_only=True)

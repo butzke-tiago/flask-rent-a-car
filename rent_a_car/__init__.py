@@ -1,10 +1,11 @@
 # flask-related
-from flask import Flask, render_template
+from flask import Flask
 from flask_migrate import Migrate
 
 # project-related
 from .db import db
-from .user import blp as UserBlueprint
+from .home import blp as HomeBlueprint
+from .user import blp as UserBlueprint, add_login
 
 # misc
 from dotenv import load_dotenv
@@ -13,7 +14,7 @@ from os import getenv
 
 def create_app():
     app = Flask(__name__)
-    load_dotenv()
+    load_dotenv(override=True)
     DB_FAMILY = getenv("DB_FAMILY") or "sqlite"
     DB_URL = getenv("DB_URL") or "sqlite:///data.db"
     SESSION_KEY = getenv("SESSION_KEY") or "rentacar"
@@ -24,11 +25,9 @@ def create_app():
 
     db.init_app(app)
     migrate = Migrate(app, db, directory=f"migrations-{DB_FAMILY}")
+    add_login(app)
 
-    @app.get("/")
-    def index():
-        return render_template("home.html", title="Rent a Car")
-
+    app.register_blueprint(HomeBlueprint)
     app.register_blueprint(UserBlueprint)
 
     return app

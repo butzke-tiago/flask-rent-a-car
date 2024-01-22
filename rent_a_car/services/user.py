@@ -1,5 +1,5 @@
 # project-related
-from ..db import db, get_entries_filtered
+from ..db import db, get_entry, get_entry_by, get_entries_filtered
 from ..models import UserModel
 
 # misc
@@ -33,7 +33,7 @@ class UserService:
         try:
             db.session.add(user)
             db.session.commit()
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             raise
         else:
             return user
@@ -45,6 +45,16 @@ class UserService:
 
     def register_client(self, email: str, password: str, name: str):
         return self.register(UserRole.CLIENT, email=email, password=password, name=name)
+
+    def get_user(self, id):
+        return get_entry(UserModel, id)
+
+    def get_user_by_email(self, email):
+        return get_entry_by(UserModel, email=email)
+
+    def login(self, email: str, password: str):
+        user = self.get_user_by_email(email)
+        return user, user and pbkdf2_sha256.verify(password, user.password)
 
 
 service = UserService()

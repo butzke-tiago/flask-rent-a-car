@@ -1,7 +1,11 @@
+# flask-related
+from flask_login import UserMixin
+
+# project-related
 from ..db import db
 
 
-class UserModel(db.Model):
+class UserModel(UserMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)

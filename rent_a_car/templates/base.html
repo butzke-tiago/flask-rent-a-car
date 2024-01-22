@@ -5,43 +5,11 @@
   <meta charset="utf-8">
   <title>{{ title }}</title>
   <!-- Add any CSS or external libraries here -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.png') }}">
   {% block head %}{% endblock %}
-  <style>
-    /* Horizontal navigation bar styles */
-    nav ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #333;
-    }
-
-    nav li {
-      float: left;
-    }
-
-    nav li a {
-      display: block;
-      color: white;
-      text-align: center;
-      padding: 14px 16px;
-      text-decoration: none;
-    }
-
-    nav li a:hover {
-      background-color: #111;
-    }
-
-    .error {
-      padding: 20px;
-      background-color: #f44336;
-      color: white;
-      margin-bottom: 15px;
-    }
-  </style>
 </head>
 
 <body>
@@ -51,7 +19,7 @@
     <nav>
       <ul>
         {% block nav %}
-        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('home.Home') }}">Home</a></li>
         <!-- Add more navigation links as needed -->
         {% endblock %}
       </ul>
