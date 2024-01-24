@@ -41,7 +41,7 @@ class Store(MethodView):
         app.logger.info(
             f"Creating {type(self).__name__} for user {current_user.email!r}."
         )
-        app.logger.debug(f"Store info: {store_input}.")
+        app.logger.debug(f"{type(self).__name__} info: {store_input}.")
         try:
             store = store_service.create_store(owner_id=current_user.id, **store_input)
         except DuplicateStoreError as e:
@@ -50,7 +50,7 @@ class Store(MethodView):
             return (
                 render_template(
                     "generic/create.html",
-                    title="New Store",
+                    title=f"New {type(self).__name__}",
                     submit="Create",
                     nav=[(url_for("store.Stores"), "Stores"), ("", "Fleet")],
                     schema=StoreSchema,
@@ -67,7 +67,7 @@ class Store(MethodView):
             return (
                 render_template(
                     "generic/create.html",
-                    title="New Store",
+                    title=f"New {type(self).__name__}",
                     submit="Create",
                     nav=[(url_for("store.Stores"), "Stores"), ("", "Fleet")],
                     schema=StoreSchema,
@@ -89,7 +89,7 @@ class Stores(MethodView):
         stores = store_service.get_user_stores(current_user.id)
         return render_template(
             "generic/all.html",
-            title="Stores",
+            title=f"{type(self).__name__}",
             nav=[(url_for("store.Store"), "Create Store"), ("", "Fleet")],
             table={
                 "name": "stores",
@@ -125,32 +125,6 @@ class StoreId(MethodView):
                 info={"name": store.name, "address": store.address or ""},
                 is_owner=is_owner,
                 update=is_owner and "edit" in kwargs,
-                tables=[
-                    {
-                        "name": "a",
-                        "headers": ["name", "address"],
-                        "rows": [
-                            {"name": "store.name", "address": "store.address" or ""},
-                            {"name": "store.name", "address": "store.address" or ""},
-                        ],
-                        "refs": [
-                            {"name": url_for("store.StoreId", store_id=1)},
-                            {"name": url_for("store.StoreId", store_id=2)},
-                        ],
-                    },
-                    {
-                        "name": "b",
-                        "headers": ["name", "address"],
-                        "rows": [
-                            {"name": "store.name", "address": "store.address" or ""},
-                            {"name": "store.name", "address": "store.address" or ""},
-                        ],
-                        "refs": [
-                            {"name": url_for("store.StoreId", store_id=1)},
-                            {"name": url_for("store.StoreId", store_id=2)},
-                        ],
-                    },
-                ],
             )
         else:
             message = f"Store #{store_id} not found!"
