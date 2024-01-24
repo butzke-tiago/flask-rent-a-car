@@ -2,11 +2,11 @@
 from flask import (
     Flask,
     current_app as app,
-    render_template,
-    redirect,
-    flash,
-    url_for,
     abort,
+    flash,
+    redirect,
+    render_template,
+    url_for,
 )
 from flask.views import MethodView
 from flask_login import (
@@ -33,6 +33,17 @@ def anonymous_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user.is_anonymous:
+            return func(*args, **kwargs)
+        else:
+            abort(403)
+
+    return decorated_view
+
+
+def login_as_franchisee_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if user_service.is_franchisee(current_user):
             return func(*args, **kwargs)
         else:
             abort(403)
@@ -139,7 +150,7 @@ class Login(MethodView):
             remember="remember" in user_input,
         )
         app.logger.info(f"User {current_user.email!r} logged in.")
-        app.logger.info(f"Args {kwargs}")
+        app.logger.debug(f"Args {kwargs}")
         if "next" in kwargs:
             return redirect(kwargs["next"])
         return redirect(url_for("user.Profile"))

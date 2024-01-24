@@ -1,21 +1,14 @@
 # project-related
-from ..db import db, get_entry, get_entry_by, get_entries_filtered
-from ..models import UserModel
+from ..db import *
+from ..models import UserModel, UserRole
 
 # misc
-from enum import Enum
-from sqlalchemy.exc import SQLAlchemyError
 from passlib.hash import pbkdf2_sha256
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class DuplicateUserError(Exception):
     pass
-
-
-class UserRole(Enum):
-    ADMIN = 0
-    FRANCHISEE = 1
-    CLIENT = 2
 
 
 class UserService:
@@ -25,14 +18,13 @@ class UserService:
                 f"The email {email!r} is already associated with an user!"
             )
         user = UserModel(
-            role=role.value,
+            role=role,
             email=email,
             password=pbkdf2_sha256.hash(password),
             name=name,
         )
         try:
-            db.session.add(user)
-            db.session.commit()
+            add_entry(user)
         except SQLAlchemyError:
             raise
         else:
@@ -55,6 +47,15 @@ class UserService:
     def login(self, email: str, password: str):
         user = self.get_user_by_email(email)
         return user, user and pbkdf2_sha256.verify(password, user.password)
+
+    def is_admin(self, user):
+        return user.role == UserRole.ADMIN
+
+    def is_franchisee(self, user):
+        return user.role == UserRole.FRANCHISEE
+
+    def is_client(self, user):
+        return user.role == UserRole.CLIENT
 
 
 service = UserService()

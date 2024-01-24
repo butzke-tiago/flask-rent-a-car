@@ -1,0 +1,22 @@
+<form id="edit" method="post" onsubmit="validateForm('edit');">
+    <table id="edit" class="table">
+        {% for row, attr in schema.__dict__['_declared_fields'].items() %}
+        {% if not attr.dump_only %}
+        <tr>
+            <th style="line-height: 25pt;">{{ row.capitalize() }}</th>
+            <td>
+                <input type="text" id="{{ row }}" name="{{ row }}" value="{{ info[row] }}" {% if attr.required %}
+                    required {% endif %} {% if attr.validate and type(attr.validate).__name__=='Length' %} {% if
+                    attr.validate.min %} minlength="{{ attr.validate.min }}" {% endif %} {% if attr.validate.max %}
+                    maxlength="{{ attr.validate.max }}" size="{{ attr.validate.max }}" {% endif %} {%endif%}>
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+    <input type="submit" value="{{ submit }}">
+    {% if update %}
+    <input type="button" value="Cancel" onclick="javascript:location.href='{{ request.path }}'">
+    <input type="button" value="Delete" onclick="sendDeleteRequest('{{ request.path }}', '{{ request.path }}')">
+    {% endif %}
+</form>

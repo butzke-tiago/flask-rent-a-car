@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+{% endblock %}
+
+{% block nav %}
+{{ super() }}
+{% if not current_user.is_authenticated %}
+<li><a href="{{ url_for('user.Login') }}">Login</a></li>
+<li><a href="{{ url_for('user.Client') }}">Register</a></li>
+<li><a href="{{ url_for('user.Franchisee') }}">Work with us</a></li>
+{% endif %}
+{% for n in nav %}
+<li><a href="{{ n[0] }}">{{ n[1] }}</a></li>
+{% endfor %}
+{% if current_user.is_authenticated %}
+<li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if update %}
+{% include 'generic/edit_form.html' %}
+{% else %}
+{% include 'generic/info_table.html' %}
+{% endif %}
+{% for table in tables %}
+<h3>{{ table['name'] }}</h3>
+{% include 'generic/list_table.html' %}
+{% endfor %}
+{% endblock %}

@@ -2,5 +2,8 @@
 
 {% block nav %}
 {{ super() }}
+{% if current_user.role.name == 'FRANCHISEE' %}
+<li><a href="{{ url_for('store.Stores') }}">Stores</a></li>
+{% endif %}
 <li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
 {% endblock %}

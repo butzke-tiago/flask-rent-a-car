@@ -16,6 +16,23 @@ def get_entry_by(model, **kwargs):
     return entry
 
 
+def add_entry(entry):
+    try:
+        db.session.add(entry)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
+
+
+def delete_entry(model, id):
+    entry = db.session.get(model, id)
+    if entry:
+        db.session.delete(entry)
+        db.session.commit()
+    return entry
+
+
 def get_all_entries(model):
     entries = (
         db.session.execute(

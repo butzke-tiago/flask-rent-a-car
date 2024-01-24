@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block nav %}
+{{ super() }}
+{% for n in nav %}
+<li><a href="{{ n[0] }}">{{ n[1] }}</a></li>
+{% endfor %}
+<li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
+{% endblock %}
+
+{% block content %}
+{% include 'generic/edit_form.html' %}
+{% endblock %}

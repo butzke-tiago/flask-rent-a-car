@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from .db import db
 from .home import blp as HomeBlueprint
 from .user import blp as UserBlueprint, add_login
+from .store import blp as StoreBlueprint
 
 # misc
 from dotenv import load_dotenv
@@ -29,5 +30,6 @@ def create_app():
 
     app.register_blueprint(HomeBlueprint)
     app.register_blueprint(UserBlueprint)
+    app.register_blueprint(StoreBlueprint)
 
     return app

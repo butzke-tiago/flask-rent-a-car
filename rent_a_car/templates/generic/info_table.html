@@ -1,0 +1,18 @@
+<table id="info" class="table">
+    {% for row, attr in schema.__dict__['_declared_fields'].items() %}
+    {% if row in info %}
+    <tr>
+        <th style="line-height: 25pt;">{{ row.capitalize() }}</th>
+        <td>
+            {{ info[row] }}
+        </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+</table>
+{% if not update and is_owner %}
+<form id=" edit" action="{{ request.path }}">
+    <input type="hidden" id="edit" name="edit" value="1">
+    <input type="submit" value="Edit">
+</form>
+{% endif %}

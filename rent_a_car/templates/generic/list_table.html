@@ -1,0 +1,24 @@
+<table id="{{ table['name'] }}" class="table table-striped">
+    <thead>
+        <tr>
+            {% for header in table['headers'] %}
+            <th>{{ header.capitalize() }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row, ref in zip(table['rows'], table['refs']) %}
+        <tr>
+            {% for header in table['headers'] %}
+            <td>
+                {% if header in ref %}
+                <a href="{{ ref[header] }}">{{ row[header] }}</a>
+                {% else %}
+                {{ row[header] }}
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
