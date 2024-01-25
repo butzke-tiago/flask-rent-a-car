@@ -2,7 +2,11 @@
     <thead>
         <tr>
             {% for header in table['headers'] %}
+            {% if header in table['pics'] %}
+            <th></th>
+            {% else %}
             <th>{{ header.capitalize() }}</th>
+            {% endif %}
             {% endfor %}
         </tr>
     </thead>
@@ -10,12 +14,19 @@
         {% for row, ref in zip(table['rows'], table['refs']) %}
         <tr>
             {% for header in table['headers'] %}
+            {% if header in ref %}
             <td>
-                {% if header in ref %}
                 <a href="{{ ref[header] }}">{{ row[header] }}</a>
-                {% else %}
+            </td>
+            {% elif header in table['pics'] %}
+            <td style="width: 10%;">
+                <div style="text-align: center;"><img src="{{ row[header] }}" height="32px"></div>
+            </td>
+            {% else %}
+            <td>
                 {{ row[header] }}
-                {% endif %}
+            </td>
+            {% endif %}
             </td>
             {% endfor %}
         </tr>

@@ -4,9 +4,12 @@ from flask_migrate import Migrate
 
 # project-related
 from .db import db
+from .category import blp as CategoryBlueprint
+from .make import blp as MakeBlueprint
+from .model import blp as ModelBlueprint
 from .home import blp as HomeBlueprint
-from .user import blp as UserBlueprint, add_login
 from .store import blp as StoreBlueprint
+from .user import blp as UserBlueprint, add_login
 
 # misc
 from dotenv import load_dotenv
@@ -31,5 +34,8 @@ def create_app():
     app.register_blueprint(HomeBlueprint)
     app.register_blueprint(UserBlueprint)
     app.register_blueprint(StoreBlueprint)
+    app.register_blueprint(CategoryBlueprint)
+    app.register_blueprint(MakeBlueprint)
+    app.register_blueprint(ModelBlueprint)
 
     return app

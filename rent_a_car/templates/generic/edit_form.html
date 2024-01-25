@@ -2,15 +2,45 @@
     <table id="edit" class="table">
         {% for row, attr in schema.__dict__['_declared_fields'].items() %}
         {% if not attr.dump_only %}
+        {% set input_type = 'number' if type(attr).__name__=='Float' else 'text' %}
+        {% set value= info[row] or '' %}
+        {% set step = 'step=0.01' if type(attr).__name__=='Float' else '' %}
+        {% set required='required' if attr.required %}
+        {% set min='min={}'.format(attr.validate.min) if attr.validate and type(attr.validate).__name__ in ('Length',
+        'Range') and attr.validate.min != None else '' %}
+        {% set max='max={}'.format(attr.validate.max) if attr.validate and type(attr.validate).__name__=='Length' and
+        attr.validate.max != None else '' %}
+        {% set size='size={}'.format(attr.validate.max) if attr.validate and type(attr.validate).__name__=='Length' and
+        attr.validate.max != None else '' %}
+        {% set oninput='oninput=loadImageFromUrlToDiv("{}","{}","{}")'.format(row,row+"_image", 64) if
+        type(attr).__name__=='Url'
+        else '' %}
         <tr>
-            <th style="line-height: 25pt;">{{ row.capitalize() }}</th>
+            <th style="line-height: 25pt;">{{ (map[row]['name'] if row in map else row).capitalize() }}</th>
             <td>
-                <input type="text" id="{{ row }}" name="{{ row }}" value="{{ info[row] }}" {% if attr.required %}
-                    required {% endif %} {% if attr.validate and type(attr.validate).__name__=='Length' %} {% if
-                    attr.validate.min %} minlength="{{ attr.validate.min }}" {% endif %} {% if attr.validate.max %}
-                    maxlength="{{ attr.validate.max }}" size="{{ attr.validate.max }}" {% endif %} {%endif%}>
+                {% if row in map %}
+                <select id="{{ row }}" name="{{ row }}">
+                    {% for option in map[row]['options'] %}
+                    {% set selected ="selected" if option['value'] == value %}
+                    <option value="{{ option['value'] }}" {{ selected }}>{{ option['name'] }}</option>
+                    {% endfor %}
+                </select>
+                {% else
+                %} <input type="{{ input_type }}" id="{{ row }}" name="{{ row }}" value="{{ value }}" {{ step }} {{
+                    required }} {{ min }} {{ max }} {{ size }} {{ oninput }}>
+                {% endif %}
             </td>
         </tr>
+        {% if type(attr).__name__=='Url' %}
+        <tr>
+            <th style="line-height: 25pt;"></th>
+            <td>
+                <div id="{{ row }}_image">
+                    <img src="{{ info[row] or '' }}" height="64px">
+                </div>
+            </td>
+        </tr>
+        {% endif %}
         {% endif %}
         {% endfor %}
     </table>

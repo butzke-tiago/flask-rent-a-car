@@ -51,6 +51,17 @@ def login_as_franchisee_required(func):
     return decorated_view
 
 
+def login_as_admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if user_service.is_admin(current_user):
+            return func(*args, **kwargs)
+        else:
+            abort(403)
+
+    return decorated_view
+
+
 @blp.route("/")
 class Profile(MethodView):
     @login_required

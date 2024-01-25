@@ -44,9 +44,6 @@ class StoreService:
                 raise
         return store
 
-    def get_user_by_name(self, name):
-        return get_entry_by(StoreModel, name=name)
-
     def get_user_stores(self, owner_id):
         return get_entries_filtered(StoreModel, owner_id=owner_id)
 

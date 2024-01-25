@@ -1,12 +1,26 @@
 <table id="info" class="table">
     {% for row, attr in schema.__dict__['_declared_fields'].items() %}
+    {% if not attr.dump_only %}
     {% if row in info %}
     <tr>
-        <th style="line-height: 25pt;">{{ row.capitalize() }}</th>
+        <th style="line-height: 25pt;">{{ (map[row]['name'] if row in map else row).capitalize() }}</th>
         <td>
-            {{ info[row] }}
+            {% if row in map %}
+            <a href="{{ map[row]['url'].format(info[row]) }}">{{ info[map[row]['name']]['name'] }}</a>
+            {% else %}
+            {{ info[row] or ''}}
+            {% endif %}
         </td>
     </tr>
+    {% if type(attr).__name__=='Url' %}
+    <tr>
+        <th style="line-height: 25pt;"></th>
+        <td>
+            <img src="{{ info[row] or ''}}" height="64px">
+        </td>
+    </tr>
+    {% endif %}
+    {% endif %}
     {% endif %}
     {% endfor %}
 </table>
