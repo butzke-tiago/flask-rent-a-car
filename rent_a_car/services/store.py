@@ -1,51 +1,36 @@
 # project-related
 from ..db import *
 from ..models import StoreModel
+from .base import BaseService, DuplicateError
 
 # misc
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 
-class DuplicateStoreError(Exception):
+class DuplicateStoreError(DuplicateError):
     pass
 
 
-class StoreService:
-    def create_store(self, owner_id: int, name: str, address: str = None):
-        if get_entries_filtered(StoreModel, name=name):
-            raise DuplicateStoreError(f"The store {name!r} already exists!")
-        store = StoreModel(name=name, address=address, owner_id=owner_id)
+class StoreService(BaseService):
+    def create(self, owner_id: int, name: str, address: str = None):
         try:
-            add_entry(store)
-        except SQLAlchemyError:
-            raise
-        else:
-            return store
+            return super().create(name, owner_id=owner_id, address=address)
+        except DuplicateError as e:
+            raise DuplicateStoreError(e)
 
-    def get_store(self, id: int):
-        return get_entry(StoreModel, id)
-
-    def delete_store(self, id: int):
-        user = delete_entry(StoreModel, id)
-        return user
-
-    def update_store(self, id: int, name: str, address: str = None):
-        store = get_entry(StoreModel, id)
+    def update(self, id: int, name: str, address: str = None):
+        store = self.get(id)
         if store:
             store.name = name
             store.address = address
             try:
-                add_entry(store)
-            except IntegrityError:
-                raise DuplicateStoreError(
-                    f"There is already a store with the name {name!r}!"
-                )
-            except SQLAlchemyError:
-                raise
+                return super().update(store)
+            except DuplicateError as e:
+                raise DuplicateStoreError(e)
         return store
 
-    def get_user_stores(self, owner_id):
+    def get_owned_by(self, owner_id):
         return get_entries_filtered(StoreModel, owner_id=owner_id)
 
 
-service = StoreService()
+service = StoreService("store", StoreModel)

@@ -1,31 +1,20 @@
 # flask-related
 from flask import current_app as app, abort, flash, redirect, render_template, url_for
 from flask.views import MethodView
-from flask_login import login_required
+from flask_login import current_user, login_required
 from flask_smorest import Blueprint
 
 # project-related
 from .schemas import CategorySchema
 
 from .factory import EndpointMixinFactory
-from .services import category_service, DuplicateCategoryError
+from .services import category_service, user_service, DuplicateCategoryError
 from .user import login_as_admin_required
+from .nav import *
 
 
 # misc
 from marshmallow import Schema, INCLUDE
-
-
-def NAV_CATEGORIES():
-    return (url_for(str(Categories())), "Categories")
-
-
-def NAV_MAKES():
-    return (url_for("make.Makes"), "Makes")
-
-
-def NAV_MODELS():
-    return (url_for("model.Models"), "Models")
 
 
 def NAV_CREATE_CATEGORY():
@@ -48,11 +37,12 @@ class Category(MethodView, EndpointMixin):
     @login_required
     @login_as_admin_required
     def get(self):
+        nav = get_nav_by_role(current_user.role)
         return render_template(
             "generic/create.html",
             title=f"New {type(self).__name__}",
             submit="Create",
-            nav=[NAV_CATEGORIES(), NAV_MAKES(), NAV_MODELS()],
+            nav=nav,
             schema=CategorySchema,
             info={},
         )
@@ -63,6 +53,7 @@ class Category(MethodView, EndpointMixin):
     def post(self, category):
         app.logger.info(f"Creating {self.blp.name}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {category}.")
+        nav = get_nav_by_role(current_user.role)
         try:
             category = category_service.create(**category)
         except DuplicateCategoryError as e:
@@ -73,7 +64,7 @@ class Category(MethodView, EndpointMixin):
                     "generic/create.html",
                     title=f"New {type(self).__name__}",
                     submit="Create",
-                    nav=[NAV_CATEGORIES(), NAV_MAKES(), NAV_MODELS()],
+                    nav=nav,
                     schema=CategorySchema,
                     info=category,
                 ),
@@ -90,7 +81,7 @@ class Category(MethodView, EndpointMixin):
                     "generic/create.html",
                     title=f"New {type(self).__name__}",
                     submit="Create",
-                    nav=[NAV_CATEGORIES(), NAV_MAKES(), NAV_MODELS()],
+                    nav=nav,
                     schema=CategorySchema,
                     info=category,
                 ),
@@ -108,10 +99,14 @@ class Category(MethodView, EndpointMixin):
 class Categories(MethodView, EndpointMixin):
     def get(self):
         categories = category_service.get_all()
+        nav = get_nav_by_role(current_user.role)
+        if user_service.is_admin(current_user):
+            nav = [NAV_CREATE_CATEGORY()] + nav
+        nav.remove(NAV_CATEGORIES())
         return render_template(
             "generic/all.html",
             title=f"{type(self).__name__}",
-            nav=[NAV_CREATE_CATEGORY(), NAV_MAKES(), NAV_MODELS()],
+            nav=nav,
             table={
                 "name": "categories",
                 "headers": ["name", "fare", "models"],
@@ -138,11 +133,12 @@ class CategoryId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{category_id}.")
         category = category_service.get(category_id)
         if category:
+            nav = get_nav_by_role(current_user.role)
             return render_template(
                 "generic/view.html",
                 title=category.name,
                 submit="Update",
-                nav=[NAV_CATEGORIES(), NAV_MAKES(), NAV_MODELS()],
+                nav=nav,
                 schema=CategorySchema,
                 info=CategorySchema().dump(category),
                 is_owner=True,
@@ -163,11 +159,12 @@ class CategoryId(MethodView, EndpointMixin):
         except DuplicateCategoryError as e:
             category = category_service.get(category_id)
             flash(f"{e}", "error")
+            nav = [NAV_CREATE_CATEGORY()] + get_nav_by_role(current_user.role)
             return render_template(
                 "generic/view.html",
                 title=category.name,
                 submit="Update",
-                nav=[NAV_CATEGORIES(), NAV_MAKES(), NAV_MODELS()],
+                nav=nav,
                 schema=CategorySchema,
                 info=category_info,
                 is_owner=True,

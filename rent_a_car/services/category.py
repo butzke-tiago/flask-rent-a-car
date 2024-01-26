@@ -3,11 +3,8 @@ from ..db import *
 from ..models import CategoryModel
 from .base import BaseService, DuplicateError
 
-# misc
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-
-class DuplicateCategoryError(Exception):
+class DuplicateCategoryError(DuplicateError):
     pass
 
 

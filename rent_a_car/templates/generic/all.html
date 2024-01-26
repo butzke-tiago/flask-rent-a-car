@@ -2,9 +2,6 @@
 
 {% block nav %}
 {{ super() }}
-{% for n in nav %}
-<li><a href="{{ n[0] }}">{{ n[1] }}</a></li>
-{% endfor %}
 {% if current_user.is_authenticated %}
 <li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
 {% endif %}

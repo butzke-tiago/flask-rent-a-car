@@ -3,11 +3,8 @@ from ..db import *
 from ..models import ModelModel
 from .base import BaseService, DuplicateError
 
-# misc
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-
-class DuplicateModelError(Exception):
+class DuplicateModelError(DuplicateError):
     pass
 
 

@@ -2,13 +2,5 @@
 
 {% block nav %}
 {{ super() }}
-{% if current_user.role.name == 'ADMIN' %}
-<li><a href="{{ url_for('category.Categories') }}">Categories</a></li>
-<li><a href="{{ url_for('make.Makes') }}">Makes</a></li>
-<li><a href="{{ url_for('model.Models') }}">Models</a></li>
-{% endif %}
-{% if current_user.role.name == 'FRANCHISEE' %}
-<li><a href="{{ url_for('store.Stores') }}">Stores</a></li>
-{% endif %}
 <li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
 {% endblock %}

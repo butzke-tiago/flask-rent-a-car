@@ -20,7 +20,9 @@
       <ul>
         {% block nav %}
         <li><a href="{{ url_for('home.Home') }}">Home</a></li>
-        <!-- Add more navigation links as needed -->
+        {% for n in nav %}
+        <li><a href="{{ n[0] }}">{{ n[1] }}</a></li>
+        {% endfor %}
         {% endblock %}
       </ul>
     </nav>

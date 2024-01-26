@@ -21,6 +21,7 @@ from flask_smorest import Blueprint
 # project-related
 from .schemas import UserSchema, UserLoginSchema
 from .services import user_service, DuplicateUserError
+from .nav import *
 
 # misc
 from functools import wraps
@@ -66,7 +67,8 @@ def login_as_admin_required(func):
 class Profile(MethodView):
     @login_required
     def get(self):
-        return render_template("user/profile.html", title=current_user.name)
+        nav = get_nav_by_role(current_user.role)
+        return render_template("user/profile.html", title=current_user.name, nav=nav)
 
 
 class User(MethodView):
@@ -186,4 +188,4 @@ def add_login(app: Flask):
     @login_manager.user_loader
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
-        return user_service.get_user(user_id)
+        return user_service.get(user_id)

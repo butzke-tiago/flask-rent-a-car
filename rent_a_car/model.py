@@ -1,32 +1,26 @@
 # flask-related
 from flask import current_app as app, abort, flash, redirect, render_template, url_for
 from flask.views import MethodView
-from flask_login import login_required
+from flask_login import current_user, login_required
 from flask_smorest import Blueprint
 
 # project-related
-from .schemas import ModelSchema, ModelSchemaNested
-
 from .factory import EndpointMixinFactory
-from .services import category_service, make_service, model_service, DuplicateModelError
+from .nav import *
+from .schemas import ModelSchema, ModelSchemaNested
+from .services import (
+    category_service,
+    make_service,
+    model_service,
+    user_service,
+    DuplicateModelError,
+)
 from .user import login_as_admin_required
 
 
 # misc
 from marshmallow import Schema, INCLUDE
 from urllib.parse import unquote
-
-
-def NAV_MODELS():
-    return (url_for(str(Models())), "Models")
-
-
-def NAV_CATEGORIES():
-    return (url_for("category.Categories"), "Categories")
-
-
-def NAV_MAKES():
-    return (url_for("make.Makes"), "Makes")
 
 
 def NAV_CREATE_MODEL():
@@ -49,11 +43,12 @@ class Model(MethodView, EndpointMixin):
     @login_required
     @login_as_admin_required
     def get(self):
+        nav = get_nav_by_role(current_user.role)
         return render_template(
             "generic/create.html",
             title=f"New {type(self).__name__}",
             submit="Create",
-            nav=[NAV_MODELS(), NAV_CATEGORIES(), NAV_MAKES()],
+            nav=nav,
             schema=ModelSchema,
             info={},
             map=get_map(),
@@ -65,6 +60,7 @@ class Model(MethodView, EndpointMixin):
     def post(self, model):
         app.logger.info(f"Creating {self.blp.name}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {model}.")
+        nav = get_nav_by_role(current_user.role)
         try:
             model = model_service.create(**model)
         except DuplicateModelError as e:
@@ -75,7 +71,7 @@ class Model(MethodView, EndpointMixin):
                     "generic/create.html",
                     title=f"New {type(self).__name__}",
                     submit="Create",
-                    nav=[NAV_MODELS(), NAV_CATEGORIES(), NAV_MAKES()],
+                    nav=nav,
                     schema=ModelSchema,
                     info=model,
                     map=get_map(),
@@ -93,7 +89,7 @@ class Model(MethodView, EndpointMixin):
                     "generic/create.html",
                     title=f"New {type(self).__name__}",
                     submit="Create",
-                    nav=[NAV_MODELS(), NAV_CATEGORIES(), NAV_MAKES()],
+                    nav=nav,
                     schema=ModelSchema,
                     info=model,
                     map=get_map(),
@@ -112,10 +108,14 @@ class Model(MethodView, EndpointMixin):
 class Models(MethodView, EndpointMixin):
     def get(self):
         models = model_service.get_all()
+        nav = get_nav_by_role(current_user.role)
+        if user_service.is_admin(current_user):
+            nav = [NAV_CREATE_MODEL()] + nav
+        nav.remove(NAV_MODELS())
         return render_template(
             "generic/all.html",
             title=f"{type(self).__name__}",
-            nav=[NAV_CREATE_MODEL(), NAV_CATEGORIES(), NAV_MAKES()],
+            nav=nav,
             table={
                 "name": "models",
                 "headers": ["picture", "name", "make", "category"],
@@ -150,11 +150,12 @@ class ModelId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{model_id}.")
         model = model_service.get(model_id)
         if model:
+            nav = get_nav_by_role(current_user.role)
             return render_template(
                 "generic/view.html",
                 title=model.name,
                 submit="Update",
-                nav=[NAV_MODELS(), NAV_CATEGORIES(), NAV_MAKES()],
+                nav=nav,
                 schema=ModelSchema,
                 info=ModelSchemaNested().dump(model),
                 is_owner=True,
@@ -176,11 +177,12 @@ class ModelId(MethodView, EndpointMixin):
         except DuplicateModelError as e:
             model = model_service.get(model_id)
             flash(f"{e}", "error")
+            nav = get_nav_by_role(current_user.role)
             return render_template(
                 "generic/view.html",
                 title=model.name,
                 submit="Update",
-                nav=[NAV_MODELS(), NAV_CATEGORIES(), NAV_MAKES()],
+                nav=nav,
                 schema=ModelSchema,
                 info=model_info,
                 is_owner=True,
