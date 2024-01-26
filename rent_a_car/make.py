@@ -141,6 +141,25 @@ class MakeId(MethodView, EndpointMixin):
                 info=MakeSchema().dump(make),
                 is_owner=True,
                 update="edit" in kwargs,
+                tables=[
+                    {
+                        "name": "models",
+                        "headers": ["picture", "name", "make"],
+                        "rows": [
+                            {
+                                "name": model.name,
+                                "make": model.make.name,
+                                "picture": model.picture or "",
+                            }
+                            for model in make.models
+                        ],
+                        "refs": [
+                            {"name": url_for(str("model.ModelId"), model_id=model.id)}
+                            for model in make.models
+                        ],
+                        "pics": ["picture"],
+                    },
+                ],
             )
         else:
             message = f"{self.blp.name.capitalize()} #{make_id} not found!"

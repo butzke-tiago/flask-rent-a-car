@@ -143,6 +143,25 @@ class CategoryId(MethodView, EndpointMixin):
                 info=CategorySchema().dump(category),
                 is_owner=True,
                 update="edit" in kwargs,
+                tables=[
+                    {
+                        "name": "models",
+                        "headers": ["picture", "name", "make"],
+                        "rows": [
+                            {
+                                "name": model.name,
+                                "make": model.make.name,
+                                "picture": model.picture or "",
+                            }
+                            for model in category.models
+                        ],
+                        "refs": [
+                            {"name": url_for(str("model.ModelId"), model_id=model.id)}
+                            for model in category.models
+                        ],
+                        "pics": ["picture"],
+                    },
+                ],
             )
         else:
             message = f"{self.blp.name.capitalize()} #{category_id} not found!"

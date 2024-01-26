@@ -18,7 +18,7 @@
 {% include 'generic/info_table.html' %}
 {% endif %}
 {% for table in tables %}
-<h3>{{ table['name'] }}</h3>
+<h3>{{ table['name'].capitalize() }}</h3>
 {% include 'generic/list_table.html' %}
 {% endfor %}
 {% endblock %}
