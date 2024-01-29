@@ -6,7 +6,6 @@ from flask_smorest import Blueprint
 
 # project-related
 from .factory import EndpointMixinFactory
-from .nav import *
 from .schemas import ModelSchema, ModelSchemaNested
 from .services import (
     category_service,
@@ -16,6 +15,7 @@ from .services import (
     DuplicateModelError,
 )
 from .user import login_as_admin_required
+from .utils.nav import *
 
 
 # misc
@@ -109,7 +109,7 @@ class Models(MethodView, EndpointMixin):
     def get(self):
         models = model_service.get_all()
         nav = get_nav_by_role(current_user.role)
-        if user_service.is_admin(current_user):
+        if current_user.is_admin():
             nav = [NAV_CREATE_MODEL()] + nav
         nav.remove(NAV_MODELS())
         return render_template(
@@ -158,7 +158,7 @@ class ModelId(MethodView, EndpointMixin):
                 nav=nav,
                 schema=ModelSchema,
                 info=ModelSchemaNested().dump(model),
-                is_owner=True,
+                is_owner=current_user.is_admin(),
                 update="edit" in kwargs,
                 map=get_map(),
             )
@@ -168,6 +168,7 @@ class ModelId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_as_admin_required
     @blp.arguments(ModelSchema, location="form")
     def post(self, model_info, model_id):
         app.logger.info(f"Updating {self.blp.name} #{model_id}.")

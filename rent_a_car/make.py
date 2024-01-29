@@ -5,12 +5,11 @@ from flask_login import current_user, login_required
 from flask_smorest import Blueprint
 
 # project-related
-from .schemas import MakeSchema
-
 from .factory import EndpointMixinFactory
+from .schemas import MakeSchema
 from .services import make_service, user_service, DuplicateMakeError
 from .user import login_as_admin_required
-from .nav import *
+from .utils.nav import *
 
 
 # misc
@@ -98,7 +97,7 @@ class Makes(MethodView, EndpointMixin):
     def get(self):
         makes = make_service.get_all()
         nav = get_nav_by_role(current_user.role)
-        if user_service.is_admin(current_user):
+        if current_user.is_admin():
             nav = [NAV_CREATE_MAKE()] + nav
         nav.remove(NAV_MAKES())
         return render_template(
@@ -139,7 +138,7 @@ class MakeId(MethodView, EndpointMixin):
                 nav=nav,
                 schema=MakeSchema,
                 info=MakeSchema().dump(make),
-                is_owner=True,
+                is_owner=current_user.is_admin(),
                 update="edit" in kwargs,
                 tables=[
                     {
@@ -167,6 +166,7 @@ class MakeId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_as_admin_required
     @blp.arguments(MakeSchema, location="form")
     def post(self, make_info, make_id):
         app.logger.info(f"Updating {self.blp.name} #{make_id}.")

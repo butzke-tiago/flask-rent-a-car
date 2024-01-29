@@ -30,7 +30,7 @@ class StoreService(BaseService):
         return store
 
     def get_owned_by(self, owner_id):
-        return get_entries_filtered(StoreModel, owner_id=owner_id)
+        return get_entries_filtered(self.model, owner_id=owner_id)
 
 
 service = StoreService("store", StoreModel)

@@ -18,7 +18,7 @@ class UserModel(UserMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(60), unique=True)
+    email = db.Column(db.String(60), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
     name = db.Column(db.String(60), nullable=False)
     role = db.Column(
@@ -26,3 +26,12 @@ class UserModel(UserMixin, db.Model):
         nullable=False,
     )
     stores = db.relationship("StoreModel", back_populates="owner", lazy="dynamic")
+
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+
+    def is_franchisee(self):
+        return self.role == UserRole.FRANCHISEE
+
+    def is_client(self):
+        return self.role == UserRole.CLIENT

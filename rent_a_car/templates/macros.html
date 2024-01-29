@@ -1,0 +1,74 @@
+{% macro header(row, map) -%}
+<th style="line-height: 25pt;">{{ (map[row]['name'] if row in map else row).capitalize() }}</th>
+{%- endmacro %}
+{% macro text(row, value, required, attr) -%}
+{% if attr.validate %}
+{% set validation = namespace(length='', pattern='') %}
+{% if type(attr.validate).__name__ == 'Length' %}
+{% set validation.length = _process_length(attr.validate) %}
+{% elif type(attr.validate).__name__ == 'And' %}
+
+{% for validator in attr.validate.validators %}
+{% if type(validator).__name__ == 'Length' %}
+{% set validation.length = _process_length(validator) %}
+{% elif type(validator).__name__ == 'Regexp' %}
+{% set validation.pattern = _process_regexp(validator) %}
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endif %}
+<input type="text" id="{{ row }}" name="{{ row }}" value="{{ value }}" {{ validation.length }} {{ validation.pattern }}
+    {{ required }}>
+{%- endmacro %}
+
+{% macro number(row, value, required, attr) -%}
+{% if attr.validate and type(attr.validate).__name__ == 'Range' %}
+{% set min = 'min={}'.format(attr.validate.min) if attr.validate.min != None %}
+{% set max = 'max={}'.format(attr.validate.max) if attr.validate.max != None %}
+{% endif %}
+{% set step = 'step=0.01' if type(attr).__name__=='Float' %}
+<input type="number" id="{{ row }}" name="{{ row }}" value="{{ value }}" {{ min }} {{ max }} {{ step }} {{ required }}>
+{%- endmacro %}
+
+{% macro pic_url(row, value, required) -%}
+{% set oninput = 'oninput=loadImageFromUrlToDiv("{}","{}","{}")'.format(row,row+"_image", 64) %}
+<td>
+    <input type="url" id="{{ row }}" name="{{ row }}" value="{{ value }}" {{ oninput }} {{ required }}>
+</td>
+<td>
+    <div id="{{ row }}_image">
+        <img src="{{ value }}" height="64px">
+    </div>
+</td>
+{%- endmacro %}
+
+{% macro select(row, value, required, map) -%}
+<select id="{{ row }}" name="{{ row }}" {{ required }}>
+    {% if not required %}
+    <option value="" {{ selected }}></option>
+    {% endif %}
+    {% for option in map[row]['options'] %}
+    {% set selected = "selected" if option['value'] == value %}
+    <option value="{{ option['value'] }}" {{ selected }}>{{ option['name'] }}</option>
+    {% endfor %}
+</select>
+{%- endmacro %}
+
+{% macro _process_length(length) -%}
+{% if length.equal != None %}
+{% set min = 'min={}'.format(length.equal) %}
+{% set max = 'max={}'.format(length.equal) %}
+{% set size = 'size={}'.format(length.equal) %}
+{% else %}
+{% set min = 'min={}'.format(length.min) if length.min != None %}
+{% set max = 'max={}'.format(length.max) if length.max != None %}
+{% set size = 'size={}'.format(length.max) if length.max != None %}
+{% endif %}
+{{ min }} {{ max }} {{ size }}
+{%- endmacro %}
+
+{% macro _process_regexp(regexp) -%}
+{% set pattern = 'pattern={}'.format(regexp.regex.pattern) %}
+{{ pattern }}
+{%- endmacro %}

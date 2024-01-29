@@ -6,10 +6,10 @@ from flask_smorest import Blueprint
 
 # project-related
 from .factory import EndpointMixinFactory
-from .nav import *
 from .schemas import StoreSchema
 from .services import store_service, user_service, DuplicateStoreError
 from .user import login_as_franchisee_required
+from .utils.nav import *
 
 # misc
 from marshmallow import Schema, INCLUDE
@@ -95,12 +95,12 @@ class Store(MethodView, EndpointMixin):
 @blp.route("/all")
 class Stores(MethodView, EndpointMixin):
     def get(self):
-        if user_service.is_admin(current_user) or user_service.is_client(current_user):
+        if current_user.is_admin() or current_user.is_client():
             stores = store_service.get_all()
         else:
             stores = store_service.get_owned_by(current_user.id)
         nav = get_nav_by_role(current_user.role)
-        if user_service.is_franchisee(current_user):
+        if current_user.is_franchisee():
             nav = [NAV_CREATE_STORE()] + nav
         nav.remove(NAV_STORES())
         return render_template(
@@ -129,9 +129,7 @@ class StoreId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{store_id}.")
         store = store_service.get(store_id)
         if store:
-            is_owner = (
-                current_user.is_authenticated and current_user.id == store.owner_id
-            )
+            is_owner = current_user.is_authenticated and store.is_owner(current_user)
             nav = get_nav_by_role(current_user.role)
             return render_template(
                 "generic/view.html",
@@ -149,10 +147,16 @@ class StoreId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_as_franchisee_required
     @blp.arguments(StoreSchema, location="form")
     def post(self, store_info, store_id):
         app.logger.info(f"Updating {self.blp.name} #{store_id}.")
         app.logger.debug(f"{self.blp.name.capitalize()} data: {store_info}.")
+        store = store_service.get(store_id)
+        if not store:
+            abort(404)
+        if not store.is_owner(current_user):
+            abort(403)
         try:
             store = store_service.update(store_id, **store_info)
         except DuplicateStoreError as e:
@@ -172,8 +176,6 @@ class StoreId(MethodView, EndpointMixin):
                 is_owner=True,
                 update=True,
             )
-        if not store:
-            abort(404)
         return redirect(url_for("store.StoreId", store_id=store_id))
 
     @login_as_franchisee_required

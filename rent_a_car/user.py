@@ -21,7 +21,7 @@ from flask_smorest import Blueprint
 # project-related
 from .schemas import UserSchema, UserLoginSchema
 from .services import user_service, DuplicateUserError
-from .nav import *
+from .utils.nav import *
 
 # misc
 from functools import wraps
@@ -44,7 +44,7 @@ def anonymous_required(func):
 def login_as_franchisee_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
-        if user_service.is_franchisee(current_user):
+        if current_user.is_franchisee():
             return func(*args, **kwargs)
         else:
             abort(403)
@@ -55,7 +55,7 @@ def login_as_franchisee_required(func):
 def login_as_admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
-        if user_service.is_admin(current_user):
+        if current_user.is_admin():
             return func(*args, **kwargs)
         else:
             abort(403)

@@ -7,19 +7,13 @@
         <td>
             {% if row in map %}
             <a href="{{ map[row]['url'].format(info[row]) }}">{{ info[map[row]['name']]['name'] }}</a>
+            {% elif type(attr).__name__=='Url' %}
+            <img src="{{ info[row] or ''}}" height="64px">
             {% else %}
             {{ info[row] or ''}}
             {% endif %}
         </td>
     </tr>
-    {% if type(attr).__name__=='Url' %}
-    <tr>
-        <th style="line-height: 25pt;"></th>
-        <td>
-            <img src="{{ info[row] or ''}}" height="64px">
-        </td>
-    </tr>
-    {% endif %}
     {% endif %}
     {% endif %}
     {% endfor %}

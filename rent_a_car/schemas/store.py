@@ -7,4 +7,3 @@ class StoreSchema(Schema):
     name = fields.String(required=True, validate=Length(2, 60))
     address = fields.String(validate=Length(2, 128))
     owner_id = fields.Integer(required=True, dump_only=True)
-    owner = fields.Dict(dump_only=True)

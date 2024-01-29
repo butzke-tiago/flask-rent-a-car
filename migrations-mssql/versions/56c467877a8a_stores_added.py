@@ -21,7 +21,7 @@ def upgrade():
     op.create_table(
         "stores",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=60), nullable=True),
+        sa.Column("name", sa.String(length=60), nullable=False),
         sa.Column("address", sa.String(length=128), nullable=True),
         sa.Column("owner_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(

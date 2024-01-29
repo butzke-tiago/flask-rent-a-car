@@ -5,12 +5,11 @@ from flask_login import current_user, login_required
 from flask_smorest import Blueprint
 
 # project-related
-from .schemas import CategorySchema
-
 from .factory import EndpointMixinFactory
+from .schemas import CategorySchema
 from .services import category_service, user_service, DuplicateCategoryError
 from .user import login_as_admin_required
-from .nav import *
+from .utils.nav import *
 
 
 # misc
@@ -100,7 +99,7 @@ class Categories(MethodView, EndpointMixin):
     def get(self):
         categories = category_service.get_all()
         nav = get_nav_by_role(current_user.role)
-        if user_service.is_admin(current_user):
+        if current_user.is_admin():
             nav = [NAV_CREATE_CATEGORY()] + nav
         nav.remove(NAV_CATEGORIES())
         return render_template(
@@ -141,7 +140,7 @@ class CategoryId(MethodView, EndpointMixin):
                 nav=nav,
                 schema=CategorySchema,
                 info=CategorySchema().dump(category),
-                is_owner=True,
+                is_owner=current_user.is_admin(),
                 update="edit" in kwargs,
                 tables=[
                     {
@@ -169,6 +168,7 @@ class CategoryId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_as_admin_required
     @blp.arguments(CategorySchema, location="form")
     def post(self, category_info, category_id):
         app.logger.info(f"Updating {self.blp.name} #{category_id}.")

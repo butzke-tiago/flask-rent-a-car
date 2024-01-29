@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy.sql import ColumnExpressionArgument
 
 db = SQLAlchemy()
 
@@ -57,3 +57,10 @@ def get_entries_filtered(model, **kwargs):
         .all()
     )
     return entries
+
+
+def get_entries_joined_filtered(*models, filter: ColumnExpressionArgument[bool]):
+    query = db.session.query(models[0])
+    for model in models[1:]:
+        query = query.join(model).filter(filter)
+    return query.all()

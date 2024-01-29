@@ -46,14 +46,5 @@ class UserService(BaseService):
         user = self.get_by_email(email)
         return user, user and pbkdf2_sha256.verify(password, user.password)
 
-    def is_admin(self, user):
-        return user.role == UserRole.ADMIN
-
-    def is_franchisee(self, user):
-        return user.role == UserRole.FRANCHISEE
-
-    def is_client(self, user):
-        return user.role == UserRole.CLIENT
-
 
 service = UserService("user", UserModel)

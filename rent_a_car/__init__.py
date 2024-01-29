@@ -10,6 +10,7 @@ from .model import blp as ModelBlueprint
 from .home import blp as HomeBlueprint
 from .store import blp as StoreBlueprint
 from .user import blp as UserBlueprint, add_login
+from .vehicle import blp as VehicleBlueprint
 
 # misc
 from dotenv import load_dotenv
@@ -37,5 +38,6 @@ def create_app():
     app.register_blueprint(CategoryBlueprint)
     app.register_blueprint(MakeBlueprint)
     app.register_blueprint(ModelBlueprint)
+    app.register_blueprint(VehicleBlueprint)
 
     return app

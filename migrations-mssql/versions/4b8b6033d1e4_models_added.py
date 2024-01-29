@@ -21,7 +21,7 @@ def upgrade():
     op.create_table(
         "categories",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=30), nullable=True),
+        sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("fare", sa.Float(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
@@ -29,7 +29,7 @@ def upgrade():
     op.create_table(
         "makes",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=30), nullable=True),
+        sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("logo", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
@@ -37,7 +37,7 @@ def upgrade():
     op.create_table(
         "models",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=30), nullable=True),
+        sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("make_id", sa.Integer(), nullable=False),
         sa.Column("category_id", sa.Integer(), nullable=False),
         sa.Column("picture", sa.String(), nullable=True),
