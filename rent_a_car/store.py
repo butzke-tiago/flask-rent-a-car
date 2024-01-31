@@ -109,9 +109,13 @@ class Stores(MethodView, EndpointMixin):
             nav=nav,
             table={
                 "name": "stores",
-                "headers": ["name", "address"],
+                "headers": ["name", "address", "vehicles"],
                 "rows": [
-                    {"name": store.name, "address": store.address or ""}
+                    {
+                        "name": store.name,
+                        "address": store.address or "",
+                        "vehicles": len(list(store.vehicles)),
+                    }
                     for store in stores
                 ],
                 "refs": [
@@ -140,6 +144,30 @@ class StoreId(MethodView, EndpointMixin):
                 info={"name": store.name, "address": store.address or ""},
                 is_owner=is_owner,
                 update=is_owner and "edit" in kwargs,
+                tables=[
+                    {
+                        "name": "vehicles",
+                        "headers": ["picture", "plate", "make", "year"],
+                        "rows": [
+                            {
+                                "plate": vehicle.plate,
+                                "make": vehicle.model.name,
+                                "year": vehicle.year,
+                                "picture": vehicle.model.picture or "",
+                            }
+                            for vehicle in store.vehicles
+                        ],
+                        "refs": [
+                            {
+                                "name": url_for(
+                                    str("vehicle.VehicleId"), vehicle_id=vehicle.id
+                                )
+                            }
+                            for vehicle in store.vehicles
+                        ],
+                        "pics": ["picture"],
+                    },
+                ],
             )
         else:
             message = f"Store #{store_id} not found!"
