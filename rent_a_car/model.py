@@ -202,7 +202,7 @@ class ModelId(MethodView, EndpointMixin):
                 schema=ModelSchema if update else ModelSchemaNested,
                 info=info,
                 info_lists_url={
-                    "tags": {"url_prefix": "/tag/", "has_button": True},
+                    "tags": {"url_prefix": "/tag/", "has_button": is_owner},
                     "category_tags": {"url_prefix": "/tag/"},
                 },
                 is_owner=is_owner,

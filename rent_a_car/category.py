@@ -143,7 +143,9 @@ class CategoryId(MethodView, EndpointMixin):
                 nav=nav,
                 schema=CategorySchema if update else CategorySchemaNested,
                 info=CategorySchemaNested().dump(category),
-                info_lists_url={"tags": {"url_prefix": "/tag/", "has_button": True}},
+                info_lists_url={
+                    "tags": {"url_prefix": "/tag/", "has_button": is_owner}
+                },
                 is_owner=is_owner,
                 update=update,
                 tables=[
