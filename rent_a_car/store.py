@@ -147,11 +147,12 @@ class StoreId(MethodView, EndpointMixin):
                 tables=[
                     {
                         "name": "vehicles",
-                        "headers": ["picture", "plate", "make", "year"],
+                        "headers": ["picture", "plate", "make", "model", "year"],
                         "rows": [
                             {
                                 "plate": vehicle.plate,
-                                "make": vehicle.model.name,
+                                "make": vehicle.model.make.name,
+                                "model": vehicle.model.name,
                                 "year": vehicle.year,
                                 "picture": vehicle.model.picture or "",
                             }
