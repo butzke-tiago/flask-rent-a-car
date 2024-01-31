@@ -12,6 +12,7 @@ from .services import (
     make_service,
     model_service,
     tag_service,
+    vehicle_service,
     DuplicateModelError,
 )
 from .user import login_as_admin_required
@@ -155,6 +156,44 @@ class ModelId(MethodView, EndpointMixin):
             nav = get_nav_by_user(current_user)
             info = ModelSchemaNested().dump(model)
             info["category_tags"] = model.category.tags
+            if current_user.is_admin():
+                vehicles = vehicle_service.get_all()
+            elif current_user.is_franchisee():
+                vehicles = vehicle_service.get_owned_by(current_user.id)
+            else:
+                vehicles = []
+            tables = (
+                [
+                    {
+                        "name": "vehicles",
+                        "headers": ["picture", "plate", "year", "store"],
+                        "rows": [
+                            {
+                                "plate": vehicle.plate,
+                                "year": vehicle.year,
+                                "store": vehicle.store.name,
+                                "picture": vehicle.model.picture or "",
+                            }
+                            for vehicle in vehicles
+                        ],
+                        "refs": [
+                            {
+                                "plate": url_for(
+                                    str("vehicle.VehicleId"), vehicle_id=vehicle.id
+                                ),
+                                "store": url_for(
+                                    str("store.StoreId"),
+                                    store_id=vehicle.store.id,
+                                ),
+                            }
+                            for vehicle in vehicles
+                        ],
+                        "pics": ["picture"],
+                    },
+                ]
+                if vehicles
+                else []
+            )
             return render_template(
                 "generic/view.html",
                 title=model.name,
@@ -169,6 +208,7 @@ class ModelId(MethodView, EndpointMixin):
                 is_owner=is_owner,
                 update=update,
                 map=get_map(),
+                tables=tables,
             )
         else:
             message = f"{self.blp.name.capitalize()} #{model_id} not found!"

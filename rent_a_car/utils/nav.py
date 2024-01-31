@@ -47,6 +47,10 @@ def get_nav_by_user(user):
             NAV_VEHICLES(),
         ]
     elif user.is_client():
-        return [NAV_STORES()]
+        return [
+            NAV_STORES(),
+            NAV_CATEGORIES(),
+            NAV_MODELS(),
+        ]
     else:
         return []

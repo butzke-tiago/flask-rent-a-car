@@ -160,9 +160,15 @@ class StoreId(MethodView, EndpointMixin):
                         ],
                         "refs": [
                             {
-                                "name": url_for(
+                                "plate": url_for(
                                     str("vehicle.VehicleId"), vehicle_id=vehicle.id
-                                )
+                                ),
+                                "make": url_for(
+                                    str("make.MakeId"), make_id=vehicle.model.make.id
+                                ),
+                                "model": url_for(
+                                    str("model.ModelId"), model_id=vehicle.model.id
+                                ),
                             }
                             for vehicle in store.vehicles
                         ],

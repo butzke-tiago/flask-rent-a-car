@@ -144,17 +144,25 @@ class MakeId(MethodView, EndpointMixin):
                 tables=[
                     {
                         "name": "models",
-                        "headers": ["picture", "name", "make"],
+                        "headers": ["picture", "name", "category"],
                         "rows": [
                             {
                                 "name": model.name,
-                                "make": model.make.name,
+                                "category": model.category.name,
                                 "picture": model.picture or "",
                             }
                             for model in make.models
                         ],
                         "refs": [
-                            {"name": url_for(str("model.ModelId"), model_id=model.id)}
+                            {
+                                "name": url_for(
+                                    str("model.ModelId"), model_id=model.id
+                                ),
+                                "category": url_for(
+                                    str("category.CategoryId"),
+                                    category_id=model.category.id,
+                                ),
+                            }
                             for model in make.models
                         ],
                         "pics": ["picture"],

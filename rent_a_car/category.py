@@ -159,7 +159,14 @@ class CategoryId(MethodView, EndpointMixin):
                             for model in category.models
                         ],
                         "refs": [
-                            {"name": url_for(str("model.ModelId"), model_id=model.id)}
+                            {
+                                "name": url_for(
+                                    str("model.ModelId"), model_id=model.id
+                                ),
+                                "make": url_for(
+                                    str("make.MakeId"), make_id=model.make.id
+                                ),
+                            }
                             for model in category.models
                         ],
                         "pics": ["picture"],
