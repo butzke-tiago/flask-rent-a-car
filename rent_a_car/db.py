@@ -4,7 +4,7 @@ from sqlalchemy.sql import ColumnExpressionArgument
 db = SQLAlchemy()
 
 
-def get_entry(model, id):
+def get_entry(model, id: int):
     entry = db.session.get(model, id)
     return entry
 
@@ -14,6 +14,13 @@ def get_entry_by(model, **kwargs):
         db.select(model).filter_by(**kwargs)
     ).scalar_one_or_none()
     return entry
+
+
+def get_entries(model, ids: list):
+    entries = (
+        db.session.execute(db.select(model).where(model.id.in_(ids))).scalars().all()
+    )
+    return entries
 
 
 def add_entry(entry):
@@ -62,5 +69,6 @@ def get_entries_filtered(model, **kwargs):
 def get_entries_joined_filtered(*models, filter: ColumnExpressionArgument[bool]):
     query = db.session.query(models[0])
     for model in models[1:]:
-        query = query.join(model).filter(filter)
+        query = query.join(model)
+    query = query.filter(filter)
     return query.all()

@@ -10,5 +10,6 @@ class VehicleModel(db.Model):
     model_id = db.Column(db.Integer(), db.ForeignKey("models.id"), nullable=False)
     year = db.Column(db.Integer, nullable=False)
     store_id = db.Column(db.Integer(), db.ForeignKey("stores.id"))
+
     model = db.relationship("ModelModel", back_populates="vehicles")
     store = db.relationship("StoreModel", back_populates="vehicles")

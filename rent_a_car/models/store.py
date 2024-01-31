@@ -9,6 +9,7 @@ class StoreModel(db.Model):
     name = db.Column(db.String(60), unique=True, nullable=False)
     address = db.Column(db.String(128))
     owner_id = db.Column(db.Integer(), db.ForeignKey("users.id"), nullable=False)
+
     owner = db.relationship("UserModel", back_populates="stores")
     vehicles = db.relationship("VehicleModel", back_populates="store", lazy="dynamic")
 

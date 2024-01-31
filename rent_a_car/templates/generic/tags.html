@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% import 'macros.html' as macros %}
+{% block content %}
+<table id="edit" class="table-striped">
+    <tr>
+        {% for tag in map['tags'] %}
+        <th colspan="3" style="text-align: center;">{{ tag.capitalize() }}</th>
+        {% endfor %}
+    </tr>
+    <tr>
+        {% for tag in map['tags'] %}
+        <form id="{{ tag }}" method="post" action="{{ request.path }}">
+            <td style="vertical-align: top;">
+                {% if map['tags'][tag]['submit'] and map['tags'][tag]['submit']['position'] == 'left' %}
+                <input type="submit" value="{{ map['tags'][tag]['submit']['text'] }}">
+                {% endif %}
+            </td>
+            <td>
+                {{ macros.select(tag, tags, true, map['tags'], 'multiple', "style=width:{}ch;".format(map['width']))}}
+            </td>
+            <td style="vertical-align: top;">
+                {% if map['tags'][tag]['submit'] and map['tags'][tag]['submit']['position'] == 'right' %}
+                <input type="submit" value="{{ map['tags'][tag]['submit']['text'] }}">
+                {% endif %}
+            </td>
+        </form>
+        {% endfor %}
+
+    </tr>
+</table>
+<button onclick="javascript:location.href='{{ done }}'">Done</button>
+{% endblock %}

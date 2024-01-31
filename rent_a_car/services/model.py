@@ -3,6 +3,9 @@ from ..db import *
 from ..models import ModelModel
 from .base import BaseService, DuplicateError
 
+# misc
+from sqlalchemy.exc import SQLAlchemyError
+
 
 class DuplicateModelError(DuplicateError):
     pass
@@ -30,6 +33,33 @@ class ModelService(BaseService):
                 return super().update(model)
             except DuplicateError as e:
                 raise DuplicateModelError(e)
+        return model
+
+    def add_tags(self, id: int, tags: list[ModelModel]):
+        model = self.get(id)
+        if model:
+            for tag in tags:
+                model.tags.append(tag)
+            try:
+                add_entry(model)
+            except SQLAlchemyError:
+                raise
+        return model
+
+    def remove_tags(self, id: int, tags: list[ModelModel]):
+        model = self.get(id)
+        if model:
+            for tag in tags:
+                try:
+                    model.tags.remove(tag)
+                except ValueError:
+                    raise ValueError(
+                        f"Tag {tag.name} is not associated to the model {model.name!r}!"
+                    )
+            try:
+                add_entry(model)
+            except SQLAlchemyError:
+                raise
         return model
 
 

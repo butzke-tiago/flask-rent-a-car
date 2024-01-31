@@ -12,6 +12,8 @@ class ModelModel(db.Model):
         db.Integer(), db.ForeignKey("categories.id"), nullable=False
     )
     picture = db.Column(db.String())
+
     make = db.relationship("MakeModel", back_populates="models")
     category = db.relationship("CategoryModel", back_populates="models")
     vehicles = db.relationship("VehicleModel", back_populates="model", lazy="dynamic")
+    tags = db.relationship("TagModel", back_populates="models", secondary="model_tags")

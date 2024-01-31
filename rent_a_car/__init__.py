@@ -9,6 +9,7 @@ from .make import blp as MakeBlueprint
 from .model import blp as ModelBlueprint
 from .home import blp as HomeBlueprint
 from .store import blp as StoreBlueprint
+from .tag import blp as TagBlueprint
 from .user import blp as UserBlueprint, add_login
 from .vehicle import blp as VehicleBlueprint
 
@@ -39,5 +40,6 @@ def create_app():
     app.register_blueprint(MakeBlueprint)
     app.register_blueprint(ModelBlueprint)
     app.register_blueprint(VehicleBlueprint)
+    app.register_blueprint(TagBlueprint)
 
     return app

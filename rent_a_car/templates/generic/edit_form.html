@@ -13,10 +13,14 @@
                     <tr>
                         <td>
                             {% if row in map %}
+                            {% if type(attr).__name__ == 'List' %}
+                            {{ macros.list(info[row], info_lists_url[row]) }}
+                            {% else %}
                             {{ macros.select(row, value, required, map) }}
+                            {% endif %}
                             {% elif type(attr).__name__ in ('Float', 'Integer') %}
                             {{ macros.number(row, value, required, attr) }}
-                            {% elif type(attr).__name__=='Url' %}
+                            {% elif type(attr).__name__ == 'Url' %}
                             {{ macros.pic_url(row, value, required) }}
                             {% else %}
                             {{ macros.text(row, value, required, attr) }}

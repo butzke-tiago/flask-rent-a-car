@@ -2,8 +2,8 @@
 <th style="line-height: 25pt;">{{ (map[row]['name'] if row in map else row).capitalize() }}</th>
 {%- endmacro %}
 {% macro text(row, value, required, attr) -%}
-{% if attr.validate %}
 {% set validation = namespace(length='', pattern='') %}
+{% if attr.validate %}
 {% if type(attr.validate).__name__ == 'Length' %}
 {% set validation.length = _process_length(attr.validate) %}
 {% elif type(attr.validate).__name__ == 'And' %}
@@ -43,8 +43,8 @@
 </td>
 {%- endmacro %}
 
-{% macro select(row, value, required, map) -%}
-<select id="{{ row }}" name="{{ row }}" {{ required }}>
+{% macro select(row, value, required, map, multiple) -%}
+<select id="{{ row }}" name="{{ row }}" {{ required }} {{ multiple }} {{ " " .join(varargs) }}>
     {% if not required %}
     <option value="" {{ selected }}></option>
     {% endif %}
@@ -53,6 +53,12 @@
     <option value="{{ option['value'] }}" {{ selected }}>{{ option['name'] }}</option>
     {% endfor %}
 </select>
+{%- endmacro %}
+
+{% macro list(list, url) -%}
+{% for item in list %}
+<a href="{{ url }}{{ item.id }}">{{ item.name }}</a>
+{% endfor %}
 {%- endmacro %}
 
 {% macro _process_length(length) -%}

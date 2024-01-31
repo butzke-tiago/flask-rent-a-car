@@ -1,14 +1,24 @@
+{% import 'macros.html' as macros %}
+
 <table id="info" class="table">
     {% for row, attr in schema.__dict__['_declared_fields'].items() %}
-    {% if not attr.dump_only %}
+    {% if not attr.dump_only and not attr.load_only %}
     {% if row in info %}
     <tr>
         <th style="line-height: 25pt;">{{ (map[row]['name'] if row in map else row).capitalize() }}</th>
         <td>
             {% if row in map %}
             <a href="{{ map[row]['url'].format(info[row]) }}">{{ info[map[row]['name']]['name'] }}</a>
-            {% elif type(attr).__name__=='Url' %}
+            {% elif type(attr).__name__ == 'Url' %}
             <img src="{{ info[row] or ''}}" height="64px">
+            {% elif type(attr).__name__ == 'List' %}
+            {{ macros.list(info[row], info_lists_url[row]['url_prefix']) }}
+            {% if info_lists_url[row]['has_button'] %}
+            <button
+                onclick="javascript:location.href='{{ request.path }}/{{ (map[row]['name'] if row in map else row) }}'">Edit
+                {{ (map[row]['name'] if row in map else
+                row).capitalize() }}</button>
+            {% endif%}
             {% else %}
             {{ info[row] or ''}}
             {% endif %}

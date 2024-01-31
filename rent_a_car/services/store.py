@@ -3,9 +3,6 @@ from ..db import *
 from ..models import StoreModel
 from .base import BaseService, DuplicateError
 
-# misc
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-
 
 class DuplicateStoreError(DuplicateError):
     pass

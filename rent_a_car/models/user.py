@@ -25,6 +25,7 @@ class UserModel(UserMixin, db.Model):
         db.Enum(UserRole),
         nullable=False,
     )
+
     stores = db.relationship("StoreModel", back_populates="owner", lazy="dynamic")
 
     def is_admin(self):

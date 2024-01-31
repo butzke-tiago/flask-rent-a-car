@@ -6,14 +6,15 @@ from flask_smorest import Blueprint
 
 # project-related
 from .factory import EndpointMixinFactory
-from .schemas import CategorySchema
-from .services import category_service, user_service, DuplicateCategoryError
+from .schemas import CategorySchema, CategorySchemaNested, TagSchema, TagInputSchema
+from .services import category_service, DuplicateCategoryError, tag_service
 from .user import login_as_admin_required
 from .utils.nav import *
 
 
 # misc
 from marshmallow import Schema, INCLUDE
+from urllib.parse import unquote
 
 
 def NAV_CREATE_CATEGORY():
@@ -36,7 +37,7 @@ class Category(MethodView, EndpointMixin):
     @login_required
     @login_as_admin_required
     def get(self):
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         return render_template(
             "generic/create.html",
             title=f"New {type(self).__name__}",
@@ -52,7 +53,7 @@ class Category(MethodView, EndpointMixin):
     def post(self, category):
         app.logger.info(f"Creating {self.blp.name}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {category}.")
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         try:
             category = category_service.create(**category)
         except DuplicateCategoryError as e:
@@ -98,7 +99,7 @@ class Category(MethodView, EndpointMixin):
 class Categories(MethodView, EndpointMixin):
     def get(self):
         categories = category_service.get_all()
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         if current_user.is_admin():
             nav = [NAV_CREATE_CATEGORY()] + nav
         nav.remove(NAV_CATEGORIES())
@@ -132,16 +133,19 @@ class CategoryId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{category_id}.")
         category = category_service.get(category_id)
         if category:
-            nav = get_nav_by_role(current_user.role)
+            is_owner = current_user.is_authenticated and current_user.is_admin()
+            update = is_owner and "edit" in kwargs
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=category.name,
                 submit="Update",
                 nav=nav,
-                schema=CategorySchema,
-                info=CategorySchema().dump(category),
-                is_owner=current_user.is_admin(),
-                update="edit" in kwargs,
+                schema=CategorySchema if update else CategorySchemaNested,
+                info=CategorySchemaNested().dump(category),
+                info_lists_url={"tags": {"url_prefix": "/tag/", "has_button": True}},
+                is_owner=is_owner,
+                update=update,
                 tables=[
                     {
                         "name": "models",
@@ -168,6 +172,7 @@ class CategoryId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_required
     @login_as_admin_required
     @blp.arguments(CategorySchema, location="form")
     def post(self, category_info, category_id):
@@ -178,7 +183,7 @@ class CategoryId(MethodView, EndpointMixin):
         except DuplicateCategoryError as e:
             category = category_service.get(category_id)
             flash(f"{e}", "error")
-            nav = [NAV_CREATE_CATEGORY()] + get_nav_by_role(current_user.role)
+            nav = [NAV_CREATE_CATEGORY()] + get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=category.name,
@@ -193,6 +198,7 @@ class CategoryId(MethodView, EndpointMixin):
             abort(404)
         return redirect(url_for(str(CategoryId()), category_id=category_id))
 
+    @login_required
     @login_as_admin_required
     def delete(self, category_id):
         app.logger.info(f"Deleting {self.blp.name} #{category_id}.")
@@ -201,3 +207,120 @@ class CategoryId(MethodView, EndpointMixin):
             app.logger.error(f"{self.blp.name.capitalize()} not found!")
             abort(404)
         return redirect(url_for(str(Categories()))), 303
+
+
+@blp.route("/<category_id>/tags/")
+class CategoryTags(MethodView, EndpointMixin):
+    @login_required
+    @login_as_admin_required
+    def get(self, category_id):
+        app.logger.info(f"Editing tags for {blp.name} #{category_id}.")
+        category = category_service.get(category_id)
+        if not category:
+            app.logger.error(f"{blp.name.capitalize()} not found!")
+            abort(404)
+        tags = tag_service.get_all()
+        nav = get_nav_by_user(current_user)
+        return render_template(
+            "generic/tags.html",
+            title=f"{category.name}'s tags",
+            submit="Update",
+            nav=nav,
+            schema=TagSchema,
+            info=category.tags,
+            tags=tags,
+            is_owner=True,
+            update=True,
+            map=map_tags(category),
+            done=url_for(str(CategoryId()), category_id=category_id),
+        )
+
+    @login_required
+    @login_as_admin_required
+    @blp.arguments(TagInputSchema, unknown=INCLUDE, location="form", as_kwargs=True)
+    def post(self, category_id, **kwargs):
+        app.logger.info(f"Updating tags for {blp.name} #{category_id}.")
+        category = category_service.get(category_id)
+        if not category:
+            app.logger.error(f"{blp.name.capitalize()} not found!")
+            abort(404)
+        app.logger.debug(f"Current tags are {[str(tag) for tag in category.tags]}.")
+        if "available" in kwargs:
+            tag_ids = kwargs["available"]
+            app.logger.info(f"Adding tags #{tag_ids}.")
+            tags = tag_service.get_many(tag_ids)
+            if len(tags) != len(tag_ids):
+                app.logger.error(
+                    f"Some tags do not exist: {list(set(tag_ids).difference(set([tag.id for tag in tags])))}."
+                )
+                abort(400)
+            app.logger.debug(f"Added tags are {[tag.name for tag in tags]}.")
+            try:
+                category_service.add_tags(category_id, tags)
+            except ValueError as e:
+                abort(400, e)
+            except Exception as e:
+                abort(500, e)
+        if "assigned" in kwargs:
+            tag_ids = kwargs["assigned"]
+            app.logger.info(f"Removing tags #{tag_ids}.")
+            tags = tag_service.get_many(tag_ids)
+            if len(tags) != len(tag_ids):
+                app.logger.error(
+                    f"Some tags do not exist: {list(set(tag_ids).difference(set([tag.id for tag in tags])))}."
+                )
+                abort(400)
+            app.logger.debug(f"Removed tags are {[tag.name for tag in tags]}.")
+            try:
+                category_service.remove_tags(category_id, tags)
+            except ValueError as e:
+                abort(400, e)
+            except Exception as e:
+                abort(500, e)
+        nav = get_nav_by_user(current_user)
+        return render_template(
+            "generic/tags.html",
+            title=f"{category.name}'s tags",
+            submit="Update",
+            nav=nav,
+            schema=TagSchema,
+            info=category.tags,
+            is_owner=True,
+            update=True,
+            map=map_tags(category),
+            done=url_for(str(CategoryId()), category_id=category_id),
+        )
+
+
+def map_tags(category):
+    all_tags = tag_service.get_all()
+    [all_tags.remove(tag) for tag in category.tags]
+    return {
+        "tags": {
+            "assigned": {
+                "name": "tags",
+                "url": unquote(url_for("tag.TagId", tag_id={})),
+                "options": (
+                    {
+                        "value": tag.id,
+                        "name": tag.name,
+                    }
+                    for tag in sorted(category.tags, key=lambda x: x.name)
+                ),
+                "submit": {"text": ">>", "position": "right"},
+            },
+            "available": {
+                "name": "tags",
+                "url": unquote(url_for("tag.TagId", tag_id={})),
+                "options": (
+                    {
+                        "value": tag.id,
+                        "name": tag.name,
+                    }
+                    for tag in sorted(all_tags, key=lambda x: x.name)
+                ),
+                "submit": {"text": "<<", "position": "left"},
+            },
+        },
+        "width": max([len(t.name) for t in all_tags + category.tags]),
+    }

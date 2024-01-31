@@ -63,11 +63,22 @@ def login_as_admin_required(func):
     return decorated_view
 
 
+def login_as_operator_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if current_user.is_franchisee() or current_user.is_admin():
+            return func(*args, **kwargs)
+        else:
+            abort(403)
+
+    return decorated_view
+
+
 @blp.route("/")
 class Profile(MethodView):
     @login_required
     def get(self):
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         return render_template("user/profile.html", title=current_user.name, nav=nav)
 
 

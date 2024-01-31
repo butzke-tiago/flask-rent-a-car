@@ -7,7 +7,7 @@ from flask_smorest import Blueprint
 # project-related
 from .factory import EndpointMixinFactory
 from .schemas import MakeSchema
-from .services import make_service, user_service, DuplicateMakeError
+from .services import make_service, DuplicateMakeError
 from .user import login_as_admin_required
 from .utils.nav import *
 
@@ -36,7 +36,7 @@ class Make(MethodView, EndpointMixin):
     @login_required
     @login_as_admin_required
     def get(self):
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         return render_template(
             "generic/create.html",
             title=f"New {type(self).__name__}",
@@ -52,7 +52,7 @@ class Make(MethodView, EndpointMixin):
     def post(self, make):
         app.logger.info(f"Creating {self.blp.name}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {make}.")
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         try:
             make = make_service.create(**make)
         except DuplicateMakeError as e:
@@ -96,7 +96,7 @@ class Make(MethodView, EndpointMixin):
 class Makes(MethodView, EndpointMixin):
     def get(self):
         makes = make_service.get_all()
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         if current_user.is_admin():
             nav = [NAV_CREATE_MAKE()] + nav
         nav.remove(NAV_MAKES())
@@ -130,7 +130,8 @@ class MakeId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{make_id}.")
         make = make_service.get(make_id)
         if make:
-            nav = get_nav_by_role(current_user.role)
+            is_owner = current_user.is_authenticated and current_user.is_admin()
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=make.name,
@@ -138,8 +139,8 @@ class MakeId(MethodView, EndpointMixin):
                 nav=nav,
                 schema=MakeSchema,
                 info=MakeSchema().dump(make),
-                is_owner=current_user.is_admin(),
-                update="edit" in kwargs,
+                is_owner=is_owner,
+                update=is_owner and "edit" in kwargs,
                 tables=[
                     {
                         "name": "models",
@@ -166,6 +167,7 @@ class MakeId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_required
     @login_as_admin_required
     @blp.arguments(MakeSchema, location="form")
     def post(self, make_info, make_id):
@@ -176,7 +178,7 @@ class MakeId(MethodView, EndpointMixin):
         except DuplicateMakeError as e:
             make = make_service.get(make_id)
             flash(f"{e}", "error")
-            nav = get_nav_by_role(current_user.role)
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=make.name,
@@ -191,6 +193,7 @@ class MakeId(MethodView, EndpointMixin):
             abort(404)
         return redirect(url_for(str(MakeId()), make_id=make_id))
 
+    @login_required
     @login_as_admin_required
     def delete(self, make_id):
         app.logger.info(f"Deleting {self.blp.name} #{make_id}.")

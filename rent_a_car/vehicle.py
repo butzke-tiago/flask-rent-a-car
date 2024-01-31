@@ -10,7 +10,6 @@ from .schemas import VehicleSchema, VehicleSchemaNested
 from .services import (
     model_service,
     store_service,
-    user_service,
     vehicle_service,
     DuplicateVehicleError,
 )
@@ -43,7 +42,7 @@ class Vehicle(MethodView, EndpointMixin):
     @login_required
     @login_as_franchisee_required
     def get(self):
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         return render_template(
             "generic/create.html",
             title=f"New {type(self).__name__}",
@@ -60,7 +59,7 @@ class Vehicle(MethodView, EndpointMixin):
     def post(self, vehicle):
         app.logger.info(f"Creating {self.blp.name}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {vehicle}.")
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         try:
             vehicle = vehicle_service.create(**vehicle)
         except DuplicateVehicleError as e:
@@ -113,7 +112,7 @@ class Vehicles(MethodView, EndpointMixin):
         else:
             vehicles = vehicle_service.get_owned_by(current_user.id)
         app.logger.debug(vehicles)
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         if current_user.is_franchisee():
             nav = [NAV_CREATE_VEHICLE()] + nav
         nav.remove(NAV_VEHICLES())
@@ -155,7 +154,7 @@ class VehicleId(MethodView, EndpointMixin):
         app.logger.info(f"Fetching {self.blp.name} #{vehicle_id}.")
         vehicle = vehicle_service.get(vehicle_id)
         if vehicle:
-            nav = get_nav_by_role(current_user.role)
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=vehicle.plate,
@@ -173,6 +172,7 @@ class VehicleId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_required
     @login_as_franchisee_required
     @blp.arguments(VehicleSchema, location="form")
     def post(self, vehicle_info, vehicle_id):
@@ -188,7 +188,7 @@ class VehicleId(MethodView, EndpointMixin):
         except DuplicateVehicleError as e:
             vehicle = vehicle_service.get(vehicle_id)
             flash(f"{e}", "error")
-            nav = get_nav_by_role(current_user.role)
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=vehicle.plate,
@@ -201,6 +201,7 @@ class VehicleId(MethodView, EndpointMixin):
             )
         return redirect(url_for(str(VehicleId()), vehicle_id=vehicle_id))
 
+    @login_required
     @login_as_franchisee_required
     def delete(self, vehicle_id):
         app.logger.info(f"Deleting {self.blp.name} #{vehicle_id}.")

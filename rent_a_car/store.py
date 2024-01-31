@@ -7,7 +7,7 @@ from flask_smorest import Blueprint
 # project-related
 from .factory import EndpointMixinFactory
 from .schemas import StoreSchema
-from .services import store_service, user_service, DuplicateStoreError
+from .services import store_service, DuplicateStoreError
 from .user import login_as_franchisee_required
 from .utils.nav import *
 
@@ -34,10 +34,10 @@ class Store(MethodView, EndpointMixin):
     @login_required
     @login_as_franchisee_required
     def get(self):
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         return render_template(
             "generic/create.html",
-            title="New Store",
+            title=f"New {type(self).__name__}",
             submit="Create",
             nav=nav,
             schema=StoreSchema,
@@ -50,7 +50,7 @@ class Store(MethodView, EndpointMixin):
     def post(self, store_input):
         app.logger.info(f"Creating {self.blp.name} for user {current_user.email!r}.")
         app.logger.debug(f"{self.blp.name.capitalize()} info: {store_input}.")
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         try:
             store = store_service.create(owner_id=current_user.id, **store_input)
         except DuplicateStoreError as e:
@@ -89,7 +89,7 @@ class Store(MethodView, EndpointMixin):
                 f"Successfully created {type(self).__name__} with id #{store.id}."
             )
             flash(f"{type(self).__name__} {store.name!r} created!")
-            return redirect(url_for("store.Stores"))
+            return redirect(url_for(str(Stores())))
 
 
 @blp.route("/all")
@@ -99,7 +99,7 @@ class Stores(MethodView, EndpointMixin):
             stores = store_service.get_all()
         else:
             stores = store_service.get_owned_by(current_user.id)
-        nav = get_nav_by_role(current_user.role)
+        nav = get_nav_by_user(current_user)
         if current_user.is_franchisee():
             nav = [NAV_CREATE_STORE()] + nav
         nav.remove(NAV_STORES())
@@ -115,7 +115,7 @@ class Stores(MethodView, EndpointMixin):
                     for store in stores
                 ],
                 "refs": [
-                    {"name": url_for("store.StoreId", store_id=store.id)}
+                    {"name": url_for(str(StoreId()), store_id=store.id)}
                     for store in stores
                 ],
             },
@@ -130,7 +130,7 @@ class StoreId(MethodView, EndpointMixin):
         store = store_service.get(store_id)
         if store:
             is_owner = current_user.is_authenticated and store.is_owner(current_user)
-            nav = get_nav_by_role(current_user.role)
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=store.name,
@@ -147,6 +147,7 @@ class StoreId(MethodView, EndpointMixin):
             flash(message, "error")
             return render_template("base.html"), 404
 
+    @login_required
     @login_as_franchisee_required
     @blp.arguments(StoreSchema, location="form")
     def post(self, store_info, store_id):
@@ -162,7 +163,7 @@ class StoreId(MethodView, EndpointMixin):
         except DuplicateStoreError as e:
             store = store_service.get(store_id)
             flash(f"{e}", "error")
-            nav = get_nav_by_role(current_user.role)
+            nav = get_nav_by_user(current_user)
             return render_template(
                 "generic/view.html",
                 title=store.name,
@@ -176,12 +177,13 @@ class StoreId(MethodView, EndpointMixin):
                 is_owner=True,
                 update=True,
             )
-        return redirect(url_for("store.StoreId", store_id=store_id))
+        return redirect(url_for(str(StoreId()), store_id=store_id))
 
+    @login_required
     @login_as_franchisee_required
     def delete(self, store_id):
         app.logger.info(f"Deleting {self.blp.name} #{store_id}.")
         store = store_service.delete(store_id)
         if not store:
             abort(404)
-        return redirect(url_for("store.Stores")), 303
+        return redirect(url_for(str(Stores()))), 303
