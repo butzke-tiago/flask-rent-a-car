@@ -4,3 +4,29 @@
 {{ super() }}
 <li><a href="{{ url_for('user.Logout') }}">Logout</a></li>
 {% endblock %}
+
+{% block content %}
+{% set layout = namespace(current_col=0) %}
+<table id="info" class="table table-striped">
+    {% for table in tables %}
+    {% set next_col = layout.current_col + 1 %}
+    {% if ncols and ((layout.current_col % ncols) == 0) %}
+    <tr>
+        <td>
+            <table id="info-{{ (layout.current_col) / ncols }}" class="table">
+                <tr>
+                    {% endif %}
+                    <td>
+                        <h3>{{ table['name'].capitalize() }}</h3>
+                        {% include 'generic/list_table.html' %}
+                    </td>
+                    {% if ncols and ((next_col % ncols) == 0) %}
+                </tr>
+            </table>
+        </td>
+    </tr>
+    {% endif %}
+    {% set layout.current_col = layout.current_col + 1 %}
+    {% endfor %}
+</table>
+{% endblock %}

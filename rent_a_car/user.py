@@ -21,7 +21,15 @@ from flask_smorest import Blueprint
 # project-related
 from .factory import EndpointMixinFactory
 from .schemas import UserSchema, UserLoginSchema
-from .services import user_service, DuplicateUserError
+from .services import (
+    category_service,
+    model_service,
+    store_service,
+    user_service,
+    DuplicateUserError,
+    tag_service,
+    vehicle_service,
+)
 from .utils.nav import *
 
 # misc
@@ -82,7 +90,13 @@ class Profile(MethodView):
     @login_required
     def get(self):
         nav = get_nav_by_user(current_user)
-        return render_template("user/profile.html", title=current_user.name, nav=nav)
+        return render_template(
+            "user/profile.html",
+            title=current_user.name,
+            nav=nav,
+            tables=get_profile_tables_by_user(current_user),
+            ncols=2,
+        )
 
 
 class User(MethodView):
@@ -289,3 +303,168 @@ def add_login(app: Flask):
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
         return user_service.get(user_id)
+
+
+def get_profile_tables_by_user(user):
+    if user.is_admin():
+        users = user_service.get_all()
+        stores = store_service.get_all()
+        categories = category_service.get_all()
+        models = model_service.get_all()
+        tags = tag_service.get_all()
+        vehicles = vehicle_service.get_all()
+
+    if user.is_franchisee():
+        stores = store_service.get_owned_by(user.id)
+        vehicles = vehicle_service.get_owned_by(user.id)
+
+    if user.is_client():
+        stores = store_service.get_all()
+        categories = category_service.get_all()
+
+    tables = [
+        {
+            "name": "users",
+            "headers": ["name", "e-mail", "role", "stores"],
+            "rows": [
+                {
+                    "name": user.name,
+                    "e-mail": user.email,
+                    "role": user.role.name,
+                    "stores": len(list(user.stores)),
+                }
+                for user in users
+            ],
+            "refs": [
+                {"name": url_for(str(UserId()), user_id=user.id)} for user in users
+            ],
+        }
+        if user.is_admin()
+        else None,
+        {
+            "name": "stores",
+            "headers": ["name", "address", "vehicles"],
+            "rows": [
+                {
+                    "name": store.name,
+                    "address": store.address or "",
+                    "vehicles": len(list(store.vehicles)),
+                }
+                for store in stores
+            ],
+            "refs": [
+                {"name": url_for("store.StoreId", store_id=store.id)}
+                for store in stores
+            ],
+        },
+        {
+            "name": "categories",
+            "headers": ["name", "fare", "models"],
+            "rows": [
+                {
+                    "name": category.name,
+                    "fare": category.fare,
+                    "models": len(list(category.models)),
+                }
+                for category in categories
+            ],
+            "refs": [
+                {"name": url_for("category.CategoryId", category_id=category.id)}
+                for category in categories
+            ],
+        }
+        if user.is_admin() or user.is_client()
+        else None,
+        {
+            "name": "models",
+            "headers": ["picture", "name", "make", "category"],
+            "rows": [
+                {
+                    "picture": model.picture or "",
+                    "name": model.name,
+                    "make": model.make.name,
+                    "category": model.category.name,
+                }
+                for model in models
+            ],
+            "refs": [
+                {
+                    "name": url_for("model.ModelId", model_id=model.id),
+                    "make": url_for("make.MakeId", make_id=model.make_id),
+                    "category": url_for(
+                        "category.CategoryId", category_id=model.category_id
+                    ),
+                }
+                for model in models
+            ],
+            "pics": ["picture"],
+        }
+        if user.is_admin()
+        else None,
+        {
+            "name": "models",
+            "headers": ["picture", "name", "make", "category"],
+            "rows": [
+                {
+                    "picture": model.picture or "",
+                    "name": model.name,
+                    "make": model.make.name,
+                    "category": model.category.name,
+                }
+                for model in models
+            ],
+            "refs": [
+                {
+                    "name": url_for("model.ModelId", model_id=model.id),
+                    "make": url_for("make.MakeId", make_id=model.make_id),
+                    "category": url_for(
+                        "category.CategoryId", category_id=model.category_id
+                    ),
+                }
+                for model in models
+            ],
+            "pics": ["picture"],
+        }
+        if user.is_admin()
+        else None,
+        {
+            "name": "tags",
+            "headers": ["name"],
+            "rows": [
+                {
+                    "name": tag.name,
+                }
+                for tag in tags
+            ],
+            "refs": [{"name": url_for("tag.TagId", tag_id=tag.id)} for tag in tags],
+        }
+        if user.is_admin()
+        else None,
+        {
+            "name": "vehicles",
+            "headers": ["picture", "name", "model", "year", "store"],
+            "rows": [
+                {
+                    "picture": vehicle.model.picture or "",
+                    "name": vehicle.plate,
+                    "model": vehicle.model.name,
+                    "year": vehicle.year,
+                    "store": vehicle.store.name,
+                }
+                for vehicle in vehicles
+            ],
+            "refs": [
+                {
+                    "name": url_for("vehicle.VehicleId", vehicle_id=vehicle.id),
+                    "model": url_for("model.ModelId", model_id=vehicle.model_id),
+                    "store": url_for("store.StoreId", store_id=vehicle.store_id),
+                }
+                for vehicle in vehicles
+            ],
+            "pics": ["picture"],
+        }
+        if user.is_admin() or user.is_franchisee()
+        else None,
+    ]
+    tables = list(filter(None, tables))
+    return tables
