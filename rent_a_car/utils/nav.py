@@ -25,9 +25,28 @@ def NAV_VEHICLES():
     return (url_for("vehicle.Vehicles"), "Vehicles")
 
 
+def NAV_LOGIN():
+    return (url_for("user.Login"), "Login")
+
+
+def NAV_REGISTER_CLIENT():
+    return (url_for("user.Client"), "Register")
+
+
+def NAV_REGISTER_FRANCHISEE():
+    return (url_for("user.Franchisee"), "Work with us")
+
+
 def get_nav_by_user(user):
     if user.is_anonymous:
-        return []
+        return [
+            NAV_STORES(),
+            NAV_CATEGORIES(),
+            NAV_MODELS(),
+            NAV_LOGIN(),
+            NAV_REGISTER_CLIENT(),
+            NAV_REGISTER_FRANCHISEE(),
+        ]
     elif user.is_admin():
         return [
             NAV_STORES(),

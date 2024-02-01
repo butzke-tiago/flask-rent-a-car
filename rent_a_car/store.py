@@ -95,12 +95,12 @@ class Store(MethodView, EndpointMixin):
 @blp.route("/all")
 class Stores(MethodView, EndpointMixin):
     def get(self):
-        if current_user.is_admin() or current_user.is_client():
-            stores = store_service.get_all()
-        else:
+        if current_user.is_authenticated and current_user.is_franchisee():
             stores = store_service.get_owned_by(current_user.id)
+        else:
+            stores = store_service.get_all()
         nav = get_nav_by_user(current_user)
-        if current_user.is_franchisee():
+        if current_user.is_authenticated and current_user.is_franchisee():
             nav = [NAV_CREATE_STORE()] + nav
         nav.remove(NAV_STORES())
         return render_template(

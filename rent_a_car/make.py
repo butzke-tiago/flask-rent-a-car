@@ -97,9 +97,10 @@ class Makes(MethodView, EndpointMixin):
     def get(self):
         makes = make_service.get_all()
         nav = get_nav_by_user(current_user)
-        if current_user.is_admin():
+        if current_user.is_authenticated and current_user.is_admin():
             nav = [NAV_CREATE_MAKE()] + nav
-        nav.remove(NAV_MAKES())
+        if NAV_MAKES() in nav:
+            nav.remove(NAV_MAKES())
         return render_template(
             "generic/all.html",
             title=f"{type(self).__name__}",

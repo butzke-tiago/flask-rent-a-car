@@ -100,7 +100,7 @@ class Categories(MethodView, EndpointMixin):
     def get(self):
         categories = category_service.get_all()
         nav = get_nav_by_user(current_user)
-        if current_user.is_admin():
+        if current_user.is_authenticated and current_user.is_admin():
             nav = [NAV_CREATE_CATEGORY()] + nav
         nav.remove(NAV_CATEGORIES())
         return render_template(

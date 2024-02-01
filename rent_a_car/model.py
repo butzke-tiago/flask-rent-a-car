@@ -110,7 +110,7 @@ class Models(MethodView, EndpointMixin):
     def get(self):
         models = model_service.get_all()
         nav = get_nav_by_user(current_user)
-        if current_user.is_admin():
+        if current_user.is_authenticated and current_user.is_admin():
             nav = [NAV_CREATE_MODEL()] + nav
         nav.remove(NAV_MODELS())
         return render_template(
@@ -156,9 +156,9 @@ class ModelId(MethodView, EndpointMixin):
             nav = get_nav_by_user(current_user)
             info = ModelSchemaNested().dump(model)
             info["category_tags"] = model.category.tags
-            if current_user.is_admin():
+            if current_user.is_authenticated and current_user.is_admin():
                 vehicles = vehicle_service.get_all()
-            elif current_user.is_franchisee():
+            elif current_user.is_authenticated and current_user.is_franchisee():
                 vehicles = vehicle_service.get_owned_by(current_user.id)
             else:
                 vehicles = []
