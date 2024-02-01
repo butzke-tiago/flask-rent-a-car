@@ -27,11 +27,6 @@ blp = Blueprint("category", __name__, url_prefix="/category")
 EndpointMixin = EndpointMixinFactory.create_endpoint(blp)
 
 
-@blp.before_request
-def before_request():
-    app.jinja_env.globals.update(type=type, zip=zip, float=float)
-
-
 @blp.route("/")
 class Category(MethodView, EndpointMixin):
     @login_required

@@ -24,11 +24,6 @@ blp = Blueprint("store", __name__, url_prefix="/store")
 EndpointMixin = EndpointMixinFactory.create_endpoint(blp)
 
 
-@blp.before_request
-def before_request():
-    app.jinja_env.globals.update(type=type, zip=zip)
-
-
 @blp.route("/")
 class Store(MethodView, EndpointMixin):
     @login_required

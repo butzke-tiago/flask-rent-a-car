@@ -16,4 +16,4 @@ class Home(MethodView):
         if current_user.is_authenticated:
             return redirect(url_for("user.Profile"))
         nav = get_nav_by_user(current_user)
-        return render_template("home.html", title="Rent-E-Ria", nav=nav)
+        return render_template("home.html", title="Rent-E-Ria rent a car", nav=nav)

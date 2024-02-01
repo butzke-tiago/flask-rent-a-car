@@ -26,11 +26,6 @@ blp = Blueprint("make", __name__, url_prefix="/make")
 EndpointMixin = EndpointMixinFactory.create_endpoint(blp)
 
 
-@blp.before_request
-def before_request():
-    app.jinja_env.globals.update(type=type, zip=zip, float=float)
-
-
 @blp.route("/")
 class Make(MethodView, EndpointMixin):
     @login_required

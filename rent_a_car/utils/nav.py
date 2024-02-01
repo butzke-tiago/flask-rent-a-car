@@ -21,6 +21,10 @@ def NAV_TAGS():
     return (url_for("tag.Tags"), "Tags")
 
 
+def NAV_USERS():
+    return (url_for("user.Users"), "Users")
+
+
 def NAV_VEHICLES():
     return (url_for("vehicle.Vehicles"), "Vehicles")
 
@@ -49,6 +53,7 @@ def get_nav_by_user(user):
         ]
     elif user.is_admin():
         return [
+            NAV_USERS(),
             NAV_STORES(),
             NAV_CATEGORIES(),
             NAV_MAKES(),

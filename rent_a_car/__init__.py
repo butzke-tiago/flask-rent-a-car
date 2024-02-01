@@ -42,4 +42,8 @@ def create_app():
     app.register_blueprint(VehicleBlueprint)
     app.register_blueprint(TagBlueprint)
 
+    @app.before_request
+    def before_request():
+        app.jinja_env.globals.update(type=type, zip=zip, float=float)
+
     return app

@@ -3,3 +3,7 @@
 {% block nav %}
 {{ super() }}
 {% endblock %}
+
+{% block content %}
+<img src="{{ url_for('static', filename='icon.png') }}">
+{% endblock %}

@@ -19,6 +19,7 @@ from flask_login import (
 from flask_smorest import Blueprint
 
 # project-related
+from .factory import EndpointMixinFactory
 from .schemas import UserSchema, UserLoginSchema
 from .services import user_service, DuplicateUserError
 from .utils.nav import *
@@ -28,6 +29,8 @@ from functools import wraps
 from marshmallow import Schema, INCLUDE
 
 blp = Blueprint("user", __name__, url_prefix="/user")
+
+EndpointMixin = EndpointMixinFactory.create_endpoint(blp)
 
 
 def anonymous_required(func):
@@ -188,6 +191,92 @@ class Logout(MethodView):
         logout_user()
         flash("Logged out!")
         return redirect(url_for("home.Home"))
+
+
+@blp.route("/all")
+class Users(MethodView):
+    @login_required
+    @login_as_admin_required
+    def get(self):
+        users = user_service.get_all()
+        nav = get_nav_by_user(current_user)
+        nav.remove(NAV_USERS())
+        return render_template(
+            "generic/all.html",
+            title=f"{type(self).__name__}",
+            nav=nav,
+            table={
+                "name": "users",
+                "headers": ["name", "e-mail", "role", "stores"],
+                "rows": [
+                    {
+                        "name": user.name,
+                        "e-mail": user.email,
+                        "role": user.role.name,
+                        "stores": len(list(user.stores)),
+                    }
+                    for user in users
+                ],
+                "refs": [
+                    {"name": url_for(str(UserId()), user_id=user.id)} for user in users
+                ],
+            },
+        )
+
+
+@blp.route("/<user_id>")
+class UserId(MethodView, EndpointMixin):
+    @login_required
+    @login_as_admin_required
+    def get(self, user_id, **kwargs):
+        app.logger.info(f"Fetching {self.blp.name} #{user_id}.")
+        user = user_service.get(user_id)
+        if user:
+            is_owner = False
+            update = False
+            nav = get_nav_by_user(current_user)
+            if user.is_franchisee():
+                tables = [
+                    {
+                        "name": "stores",
+                        "headers": ["name", "address"],
+                        "rows": [
+                            {
+                                "name": store.name,
+                                "address": store.address,
+                            }
+                            for store in user.stores
+                        ],
+                        "refs": [
+                            {
+                                "name": url_for(
+                                    str("store.StoreId"), store_id=store.id
+                                ),
+                            }
+                            for store in user.stores
+                        ],
+                        "pics": ["picture"],
+                    },
+                ]
+
+            else:
+                tables = []
+            return render_template(
+                "generic/view.html",
+                title=user.name,
+                submit="Update",
+                nav=nav,
+                schema=UserSchema,
+                info=UserSchema().dump(user),
+                is_owner=is_owner,
+                update=update,
+                tables=tables,
+            )
+        else:
+            message = f"{self.blp.name.capitalize()} #{user_id} not found!"
+            app.logger.error(message)
+            flash(message, "error")
+            return render_template("base.html"), 404
 
 
 def add_login(app: Flask):
